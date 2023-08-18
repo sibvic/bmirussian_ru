@@ -1,0 +1,5 @@
+.vs
+BMIRussian_ru/bin
+BMIRussian_ru/obj
+*.user
+BMIRussian_ru/wwwroot/lib/*

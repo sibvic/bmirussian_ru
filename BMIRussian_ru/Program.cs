@@ -1,5 +1,5 @@
 using BMIRussian_ru.Data;
-using Microsoft.AspNetCore.Identity;
+using BMIRussian_ru.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,8 +10,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.Configure<KafkaMessageSenderOptions>(
+    builder.Configuration.GetSection("KafkaMessageSender"));
+builder.Services.AddSingleton<KafkaMessageSender>();
+builder.Services.AddHostedService<LoginService>();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddControllers();
 builder.Services.AddRazorPages();
 
 var app = builder.Build();

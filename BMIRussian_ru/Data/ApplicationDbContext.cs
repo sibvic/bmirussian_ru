@@ -10,6 +10,6 @@ namespace BMIRussian_ru.Data
         public virtual DbSet<UserRoles> UserRoles { get; set; }
         public virtual DbSet<UserToken> UserToken { get; set; }
 
-        public virtual DbSet<Channel> Channels { get; set; }
+        //public virtual DbSet<Channel> Channels { get; set; }
     }
 }

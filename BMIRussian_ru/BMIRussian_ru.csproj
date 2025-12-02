@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AuthLib\AuthLib.csproj" />
+    <PackageReference Include="Sibvic.AuthLib" Version="8.0.0" />
   </ItemGroup>
 
 </Project>

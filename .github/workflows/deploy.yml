@@ -1,0 +1,79 @@
+name: Build, Test, and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build -c Release --no-restore
+
+    - name: Run tests
+      run: dotnet test --no-build --verbosity normal
+      continue-on-error: true
+
+    - name: Publish
+      run: dotnet publish BMIRussian_ru/BMIRussian_ru.csproj -c Release -r linux-x64 --no-self-contained -o BMIRussian_ru/bin/Release/net8.0/linux-x64/publish
+
+    - name: Create deployment zip
+      working-directory: BMIRussian_ru/bin/Release/net8.0/linux-x64/publish
+      run: |
+        zip -r ${{ github.workspace }}/bmirussian_ru.zip . -x "*.pdb"
+
+    - name: Setup SSH
+      run: |
+        eval "$(ssh-agent -s)"
+        echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+        echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        if [ -n "$SSH_PASSPHRASE" ]; then
+          echo '#!/bin/bash' > ~/.ssh/askpass.sh
+          echo "echo \"$SSH_PASSPHRASE\"" >> ~/.ssh/askpass.sh
+          chmod +x ~/.ssh/askpass.sh
+          DISPLAY=:0 SSH_ASKPASS=~/.ssh/askpass.sh ssh-add ~/.ssh/deploy_key < /dev/null
+        else
+          ssh-add ~/.ssh/deploy_key
+        fi
+        ssh-add -l
+      env:
+        SSH_PASSPHRASE: ${{ secrets.SSH_PASSPHRASE }}
+
+    - name: Upload to server
+      run: |
+        scp -o StrictHostKeyChecking=no bmirussian_ru.zip ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/bmirussian_ru.zip
+
+    - name: Deploy on server
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          unzip bmirussian_ru.zip -d bmirussian_ru_to_deploy
+          rm bmirussian_ru_to_deploy/appsettings.json
+          rm bmirussian_ru.zip
+          sudo systemctl stop bmirussian_ru.service
+          yes | sudo cp -i -r bmirussian_ru_to_deploy/* /var/bmirussian_ru/
+          sudo systemctl start bmirussian_ru.service
+          rm -r bmirussian_ru_to_deploy/
+        EOF
+
+    - name: Cleanup
+      if: always()
+      run: |
+        rm -f bmirussian_ru.zip
+

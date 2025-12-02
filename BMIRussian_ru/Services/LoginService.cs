@@ -24,7 +24,14 @@ namespace BMIRussian_ru.Services
             if (string.IsNullOrWhiteSpace(kafkaOptions.BootstrapServers)
                 || string.IsNullOrWhiteSpace(kafkaOptions.InTopic))
             {
-                logger.LogWarning("Kafka judges consumer is disabled because configuration is missing.");
+                var missingConfig = new List<string>();
+                if (string.IsNullOrWhiteSpace(kafkaOptions.BootstrapServers))
+                    missingConfig.Add("BootstrapServers");
+                if (string.IsNullOrWhiteSpace(kafkaOptions.InTopic))
+                    missingConfig.Add("InTopic");
+                
+                logger.LogWarning("Kafka users consumer is disabled because configuration is missing: {MissingConfig}",
+                    string.Join(", ", missingConfig));
                 return;
             }
 
@@ -35,13 +42,13 @@ namespace BMIRussian_ru.Services
                 {
                     if (error.IsError)
                     {
-                        logger.LogError("Kafka judges consumer error: {Error}", error);
+                        logger.LogError("Kafka users consumer error: {Error}", error);
                     }
                 })
                 .Build();
 
             consumer.Subscribe(kafkaOptions.InTopic);
-            logger.LogInformation("Kafka judges consumer subscribed to topic {Topic}.", kafkaOptions.InTopic);
+            logger.LogInformation("Kafka users consumer subscribed to topic {Topic}.", kafkaOptions.InTopic);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -57,7 +64,7 @@ namespace BMIRussian_ru.Services
                 }
                 catch (ConsumeException ex)
                 {
-                    logger.LogError(ex, "Kafka consumption error while reading judges topic {Topic}.", kafkaOptions.InTopic);
+                    logger.LogError(ex, "Kafka consumption error while reading users topic {Topic}.", kafkaOptions.InTopic);
                     await Task.Delay(1000, stoppingToken);
                 }
                 catch (OperationCanceledException)
@@ -66,7 +73,7 @@ namespace BMIRussian_ru.Services
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Unexpected error in judges Kafka consumer loop.");
+                    logger.LogError(ex, "Unexpected error in users Kafka consumer loop.");
                 }
             }
 
@@ -76,7 +83,7 @@ namespace BMIRussian_ru.Services
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Failed to close judges Kafka consumer gracefully.");
+                logger.LogWarning(ex, "Failed to close users Kafka consumer gracefully.");
             }
         }
 
@@ -104,7 +111,7 @@ namespace BMIRussian_ru.Services
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                logger.LogWarning("Received judges Kafka message without key.");
+                logger.LogWarning("Received users Kafka message without key.");
                 return;
             }
 

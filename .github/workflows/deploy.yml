@@ -18,6 +18,14 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
+    - name: Configure NuGet authentication for GitHub Packages
+      run: |
+        dotnet nuget add source https://nuget.pkg.github.com/sibvic/index.json \
+          --name github \
+          --username ${{ secrets.GH_USERNAME }} \
+          --password ${{ secrets.GH_TOKEN }} \
+          --store-password-in-clear-text
+
     - name: Restore dependencies
       run: dotnet restore
 

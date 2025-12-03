@@ -1,4 +1,5 @@
 using BMIRussian_ru.Data;
+using BMIRussian_ru.Logic;
 using BMIRussian_ru.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,11 @@ builder.Services.Configure<KafkaMessageSenderOptions>(
     builder.Configuration.GetSection("KafkaMessageSender"));
 builder.Services.AddSingleton<KafkaMessageSender>();
 builder.Services.AddHostedService<LoginService>();
+
+// Register AuthOptions
+var jwtKey = builder.Configuration["JWT:KEY"] ?? throw new InvalidOperationException("JWT:KEY environment variable is required.");
+var jwtIssuer = builder.Configuration["JWT:ISSUER"];
+builder.Services.AddSingleton(new AuthOptions(jwtKey, jwtIssuer));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers();

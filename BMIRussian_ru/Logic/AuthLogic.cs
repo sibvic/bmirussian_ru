@@ -10,7 +10,7 @@ using System.Text;
 
 namespace BMIRussian_ru.Logic
 {
-    public record AuthOptions(string Key);
+    public record AuthOptions(string Key, string? Issuer);
 
     public class AuthLogic(ApplicationDbContext context, AuthOptions options)
     {
@@ -65,7 +65,8 @@ namespace BMIRussian_ru.Logic
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = options.Issuer
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);

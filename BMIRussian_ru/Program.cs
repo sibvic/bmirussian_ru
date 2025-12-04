@@ -24,6 +24,18 @@ builder.Services.AddSingleton(new AuthOptions(jwtKey, jwtIssuer));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers();
 builder.Services.AddRazorPages();
+builder.Services.AddHttpClient();
+
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("APIPolicy", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -44,8 +56,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseCors("APIPolicy");
+
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapRazorPages();
 
 using var scope = app.Services.CreateScope();

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Sibvic.AuthLib;
+using Sibvic.AuthLib.Logic;
 
 namespace BMIRussian_ru.Services
 {
@@ -161,41 +162,18 @@ namespace BMIRussian_ru.Services
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+            var authLogic = scope.ServiceProvider.GetRequiredService<AuthLogic>();
             var telegramId = payload.TelegramUserId.ToString(CultureInfo.InvariantCulture);
-
-            var existingCredential = await context.UserCredentianls
-                .AsNoTracking()
-                .FirstOrDefaultAsync(uc =>
-                    uc.Source == CredentialsSource.Telegram &&
-                    uc.SourceId == telegramId,
-                    cancellationToken);
-
-            if (existingCredential != null)
+            var user = authLogic.FindUser(telegramId, CredentialsSource.Telegram);
+            if (user != null)
             {
                 logger.LogDebug("Credential already exists for telegram id {TelegramId}.", telegramId);
                 return;
             }
 
-            var nickname = $"@{telegramId}";
-
-            var user = new User
-            {
-                Nickname = nickname
-            };
-
-            var credential = new UserCredentianl
-            {
-                SourceId = telegramId,
-                Source = CredentialsSource.Telegram,
-                User = user
-            };
-
-            await context.Users.AddAsync(user, cancellationToken);
-            await context.UserCredentianls.AddAsync(credential, cancellationToken);
-
             try
             {
-                await context.SaveChangesAsync(cancellationToken);
+                await authLogic.RegisterUser($"@{telegramId}", null, null, null, null, null, null, CredentialsSource.Telegram, cancellationToken);
                 logger.LogInformation("Registered new user {UserId} for telegram id {TelegramId}.", user.Id, telegramId);
             }
             catch (DbUpdateException ex)
@@ -237,61 +215,19 @@ namespace BMIRussian_ru.Services
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var kafkaMessageSender = scope.ServiceProvider.GetRequiredService<KafkaMessageSender>();
+            var authLogic = scope.ServiceProvider.GetRequiredService<AuthLogic>();
 
             var telegramId = payload.TelegramUserId.ToString(CultureInfo.InvariantCulture);
-
-            var credential = await context.UserCredentianls
-                .FirstOrDefaultAsync(uc =>
-                    uc.Source == CredentialsSource.Telegram
-                    && uc.SourceId == telegramId,
-                    cancellationToken);
-
-            if (credential == null)
-            {
-                logger.LogWarning("Could not find user credential for telegram id {TelegramId}.", telegramId);
-                return;
-            }
-
-            var user = await context.Users
-                .FirstOrDefaultAsync(u => u.Id == credential.UserId, cancellationToken);
-
+            
+            var user = authLogic.FindUser(telegramId, CredentialsSource.Telegram);
             if (user == null)
             {
-                logger.LogWarning("Could not find user {UserId} for telegram id {TelegramId}.", credential.UserId, telegramId);
+                logger.LogWarning("Could not find user for telegram id {TelegramId}.", telegramId);
                 return;
             }
-
-            // Generate a new token
-            var token = Guid.NewGuid().ToString("N");
-            var validTill = DateTime.UtcNow.AddMinutes(3);
-
-            // Find existing token for this user or create a new one
-            var existingToken = await context.UserToken
-                .FirstOrDefaultAsync(ut => ut.UserId == user.Id, cancellationToken);
-
-            if (existingToken != null)
-            {
-                // Update existing token
-                existingToken.Token = token;
-                existingToken.ValidTill = validTill;
-                context.UserToken.Update(existingToken);
-            }
-            else
-            {
-                // Create new token
-                var userToken = new UserToken
-                {
-                    Token = token,
-                    ValidTill = validTill,
-                    UserId = user.Id,
-                    User = user
-                };
-                await context.UserToken.AddAsync(userToken, cancellationToken);
-            }
-
             try
             {
-                await context.SaveChangesAsync(cancellationToken);
+                var token = await authLogic.GenerateTemporaryToken(user, cancellationToken);
                 logger.LogInformation("Created/updated token for user {UserId} with telegram id {TelegramId}.", user.Id, telegramId);
 
                 // Send AuthResponse back via Kafka

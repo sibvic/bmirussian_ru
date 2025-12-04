@@ -1,9 +1,9 @@
-﻿using BMIRussian_ru.Exceptions;
-using BMIRussian_ru.Logic;
-using BMIRussian_ru.Models;
+﻿using BMIRussian_ru.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Sibvic.AuthLib;
+using Sibvic.AuthLib.Exceptions;
+using Sibvic.AuthLib.Logic;
 
 namespace BMIRussian_ru.Controllers
 {
@@ -22,7 +22,7 @@ namespace BMIRussian_ru.Controllers
 
             try
             {
-                string bearerToken = logic.AuthenticateFromTelegramBot(request);
+                string bearerToken = logic.AuthenticateFromTelegramBot(request.TelegramId, request.TemporaryToken);
                 return Ok(bearerToken);
             }
             catch (UserNotFoundException)

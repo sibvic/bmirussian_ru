@@ -1,7 +1,8 @@
 using BMIRussian_ru.Data;
-using BMIRussian_ru.Logic;
 using BMIRussian_ru.Services;
 using Microsoft.EntityFrameworkCore;
+using Sibvic.AuthLib;
+using Sibvic.AuthLib.Logic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
+// Register UserDBContext to resolve to ApplicationDbContext
+builder.Services.AddScoped<UserDBContext>(serviceProvider => 
+    serviceProvider.GetRequiredService<ApplicationDbContext>());
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.Configure<KafkaMessageSenderOptions>(

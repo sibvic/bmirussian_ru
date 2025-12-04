@@ -21,6 +21,9 @@ var jwtKey = builder.Configuration["JWT:KEY"] ?? throw new InvalidOperationExcep
 var jwtIssuer = builder.Configuration["JWT:ISSUER"];
 builder.Services.AddSingleton(new AuthOptions(jwtKey, jwtIssuer));
 
+// Register AuthLogic
+builder.Services.AddScoped<AuthLogic>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers();
 builder.Services.AddRazorPages();

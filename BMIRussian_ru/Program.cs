@@ -1,6 +1,8 @@
 using BMIRussian_ru.Data;
 using BMIRussian_ru.Services;
 using Microsoft.EntityFrameworkCore;
+using Sibvic.AuthLib;
+using Sibvic.AuthLib.Logic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
+// Register UserDBContext to resolve to ApplicationDbContext
+builder.Services.AddScoped<UserDBContext>(serviceProvider => 
+    serviceProvider.GetRequiredService<ApplicationDbContext>());
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.Configure<KafkaMessageSenderOptions>(
@@ -15,9 +20,29 @@ builder.Services.Configure<KafkaMessageSenderOptions>(
 builder.Services.AddSingleton<KafkaMessageSender>();
 builder.Services.AddHostedService<LoginService>();
 
+// Register AuthOptions
+var jwtKey = builder.Configuration["JWT:KEY"] ?? throw new InvalidOperationException("JWT:KEY environment variable is required.");
+var jwtIssuer = builder.Configuration["JWT:ISSUER"];
+builder.Services.AddSingleton(new AuthOptions(jwtKey, jwtIssuer));
+
+// Register AuthLogic
+builder.Services.AddScoped<AuthLogic>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers();
 builder.Services.AddRazorPages();
+builder.Services.AddHttpClient();
+
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("APIPolicy", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -38,8 +63,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseCors("APIPolicy");
+
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapRazorPages();
 
 using var scope = app.Services.CreateScope();

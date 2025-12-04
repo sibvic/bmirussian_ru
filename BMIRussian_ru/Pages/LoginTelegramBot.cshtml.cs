@@ -61,15 +61,7 @@ namespace BMIRussian_ru.Pages
                 try
                 {
                     var jwtToken = _authLogic.AuthenticateFromTelegramBot(telegramid, token);
-                    // If we get here, all agreements are accepted and we have the token
-                    // Store JWT token in cookie and redirect
-                    Response.Cookies.Append("jwtToken", jwtToken, new Microsoft.AspNetCore.Http.CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = Request.IsHttps,
-                        SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
-                        Expires = DateTimeOffset.UtcNow.AddDays(7)
-                    });
+                    SetJwtCookie(jwtToken);
                     return RedirectToPage("/Index");
                 }
                 catch (AgreementsNotAcceptedException)
@@ -121,6 +113,20 @@ namespace BMIRussian_ru.Pages
             return Page();
         }
 
+        private void SetJwtCookie(string jwtToken)
+        {
+            // If we get here, all agreements are accepted and we have the token
+            // Store JWT token in cookie and redirect
+            Response.Cookies.Append("jwtToken", jwtToken, new Microsoft.AspNetCore.Http.CookieOptions
+            {
+                HttpOnly = true,
+                Secure = Request.IsHttps,
+                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Domain = ".bmirussian.ru"
+            });
+        }
+
         public async Task<IActionResult> OnPostAsync(string? token = null, string? telegramid = null)
         {
             if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(telegramid))
@@ -151,14 +157,7 @@ namespace BMIRussian_ru.Pages
                     try
                     {
                         var jwtToken = _authLogic.AuthenticateFromTelegramBot(telegramid, token);
-                        // Store JWT token in cookie and redirect
-                        Response.Cookies.Append("jwtToken", jwtToken, new Microsoft.AspNetCore.Http.CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = Request.IsHttps,
-                            SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
-                            Expires = DateTimeOffset.UtcNow.AddDays(7)
-                        });
+                        SetJwtCookie(jwtToken);
                         return RedirectToPage("/Index");
                     }
                     catch (InvalidTokenException)
@@ -219,14 +218,7 @@ namespace BMIRussian_ru.Pages
                 try
                 {
                     var jwtToken = _authLogic.GenerateToken(user);
-                    // Store JWT token in cookie and redirect
-                    Response.Cookies.Append("jwtToken", jwtToken, new Microsoft.AspNetCore.Http.CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = Request.IsHttps,
-                        SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
-                        Expires = DateTimeOffset.UtcNow.AddDays(7)
-                    });
+                    SetJwtCookie(jwtToken);
                     return RedirectToPage("/Index");
                 }
                 catch (AgreementsNotAcceptedException)

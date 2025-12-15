@@ -173,8 +173,8 @@ namespace BMIRussian_ru.Services
 
             try
             {
-                await authLogic.RegisterUser($"@{telegramId}", null, null, null, null, null, null, CredentialsSource.Telegram, cancellationToken);
-                logger.LogInformation("Registered new user {UserId} for telegram id {TelegramId}.", user.Id, telegramId);
+                await authLogic.RegisterUser(telegramId, null, null, $"@{telegramId}", null, null, null, CredentialsSource.Telegram, cancellationToken);
+                logger.LogInformation("Registered new user for telegram id {TelegramId}.", telegramId);
             }
             catch (DbUpdateException ex)
             {

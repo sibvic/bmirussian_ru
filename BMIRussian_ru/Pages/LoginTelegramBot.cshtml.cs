@@ -120,9 +120,10 @@ namespace BMIRussian_ru.Pages
         {
             // If we get here, all agreements are accepted and we have the token
             // Store JWT token in cookie and redirect
+            // HttpOnly is set to false to allow Blazor WebAssembly to access the cookie via JavaScript
             var cookieOptions = new Microsoft.AspNetCore.Http.CookieOptions
             {
-                HttpOnly = true,
+                HttpOnly = false,
                 Secure = Request.IsHttps,
                 SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
                 Expires = DateTimeOffset.UtcNow.AddDays(7)

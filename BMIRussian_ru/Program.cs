@@ -1,6 +1,7 @@
 using BMIRussian_ru.Data;
 using BMIRussian_ru.Services;
 using Microsoft.EntityFrameworkCore;
+using Prometheus;
 using Sibvic.AuthLib;
 using Sibvic.AuthLib.Logic;
 
@@ -18,6 +19,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.Configure<KafkaMessageSenderOptions>(
     builder.Configuration.GetSection("KafkaMessageSender"));
 builder.Services.AddSingleton<KafkaMessageSender>();
+builder.Services.AddSingleton<MetricsService>();
 builder.Services.AddHostedService<LoginService>();
 
 // Register AuthOptions
@@ -60,6 +62,10 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// Prometheus metrics
+app.UseMetricServer();
+app.UseHttpMetrics();
 
 app.UseRouting();
 

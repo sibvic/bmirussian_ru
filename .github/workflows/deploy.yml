@@ -16,7 +16,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '9.0.x'
 
     - name: Configure NuGet authentication for GitHub Packages
       run: |
@@ -37,10 +37,10 @@ jobs:
       continue-on-error: true
 
     - name: Publish
-      run: dotnet publish BMIRussian_ru/BMIRussian_ru.csproj -c Release -r linux-x64 --no-self-contained -o BMIRussian_ru/bin/Release/net8.0/linux-x64/publish
+      run: dotnet publish BMIRussian_ru/BMIRussian_ru.csproj -c Release -r linux-x64 --no-self-contained -o BMIRussian_ru/bin/Release/net9.0/linux-x64/publish
 
     - name: Create deployment zip
-      working-directory: BMIRussian_ru/bin/Release/net8.0/linux-x64/publish
+      working-directory: BMIRussian_ru/bin/Release/net9.0/linux-x64/publish
       run: |
         zip -r ${{ github.workspace }}/bmirussian_ru.zip . -x "*.pdb"
 

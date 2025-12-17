@@ -13,17 +13,20 @@ namespace BMIRussian_ru.Pages
         private readonly ILogger<LoginTelegramBotModel> _logger;
         private readonly AuthLogic _authLogic;
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
         public LoginTelegramBotModel(
             IHttpClientFactory httpClientFactory, 
             ILogger<LoginTelegramBotModel> logger,
             AuthLogic authLogic,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
             _authLogic = authLogic;
             _context = context;
+            _configuration = configuration;
         }
 
         public string? ErrorMessage { get; set; }
@@ -117,14 +120,23 @@ namespace BMIRussian_ru.Pages
         {
             // If we get here, all agreements are accepted and we have the token
             // Store JWT token in cookie and redirect
-            Response.Cookies.Append("jwtToken", jwtToken, new Microsoft.AspNetCore.Http.CookieOptions
+            // HttpOnly is set to false to allow Blazor WebAssembly to access the cookie via JavaScript
+            var cookieOptions = new Microsoft.AspNetCore.Http.CookieOptions
             {
-                HttpOnly = true,
+                HttpOnly = false,
                 Secure = Request.IsHttps,
                 SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddDays(7),
-                Domain = ".bmirussian.ru"
-            });
+                Expires = DateTimeOffset.UtcNow.AddDays(7)
+            };
+
+            // Set domain from configuration if specified
+            var cookieDomain = _configuration["CookieDomain"];
+            if (!string.IsNullOrWhiteSpace(cookieDomain))
+            {
+                cookieOptions.Domain = cookieDomain;
+            }
+
+            Response.Cookies.Append("jwtToken", jwtToken, cookieOptions);
         }
 
         public async Task<IActionResult> OnPostAsync(string? token = null, string? telegramid = null)

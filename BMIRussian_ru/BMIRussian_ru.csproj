@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <PackageReference Include="Sibvic.AuthLib" Version="9.0.0" />
+    <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
   </ItemGroup>
 
 </Project>

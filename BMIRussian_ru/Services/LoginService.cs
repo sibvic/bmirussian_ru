@@ -12,12 +12,14 @@ namespace BMIRussian_ru.Services
 {
     public class LoginService(IServiceProvider serviceProvider,
         IOptions<KafkaMessageSenderOptions> kafkaOptionsAccessor,
-        ILogger<LoginService> logger) : BackgroundService
+        ILogger<LoginService> logger,
+        MetricsService metricsService) : BackgroundService
     {
         private readonly IServiceProvider serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         private readonly ILogger<LoginService> logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private readonly KafkaMessageSenderOptions kafkaOptions = kafkaOptionsAccessor?.Value
             ?? throw new ArgumentNullException(nameof(kafkaOptionsAccessor));
+        private readonly MetricsService metricsService = metricsService ?? throw new ArgumentNullException(nameof(metricsService));
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -175,6 +177,7 @@ namespace BMIRussian_ru.Services
             {
                 await authLogic.RegisterUser(telegramId, null, null, $"@{telegramId}", null, null, null, CredentialsSource.Telegram, cancellationToken);
                 logger.LogInformation("Registered new user for telegram id {TelegramId}.", telegramId);
+                metricsService.IncrementRegisteredUsers("telegram");
             }
             catch (DbUpdateException ex)
             {

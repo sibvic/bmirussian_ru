@@ -2,11 +2,11 @@
 
 ## Overview
 
-AuthLib is a .NET 8.0 authentication library that provides user authentication, JWT token generation, user agreement management, and role-based access control. It's designed to work with PostgreSQL databases using Entity Framework Core and supports authentication via Telegram bots.
+AuthLib is a .NET 9.0 authentication library that provides user authentication, JWT token generation, user agreement management, and role-based access control. It's designed to work with PostgreSQL databases using Entity Framework Core and supports authentication via Telegram bots.
 
 **Package:** `Sibvic.AuthLib`  
-**Version:** 8.0.1  
-**Target Framework:** .NET 8.0
+**Version:** 9.0.0  
+**Target Framework:** .NET 9.0
 
 ## Features
 
@@ -37,7 +37,7 @@ Install-Package Sibvic.AuthLib
 - `Npgsql.EntityFrameworkCore.PostgreSQL` (8.0.11)
 - `System.IdentityModel.Tokens.Jwt` (8.15.0)
 - Entity Framework Core
-- .NET 8.0
+- .NET 9.0
 
 ## Database Setup
 
@@ -96,7 +96,9 @@ builder.Services.AddScoped<AuthLogic>(serviceProvider =>
         Key: builder.Configuration["Auth:Key"],
         Issuer: builder.Configuration["Auth:Issuer"]
     );
-    return new AuthLogic(context, authOptions);
+    // Optional: provide callback for user registration events
+    IAuthLogicCallback? callback = serviceProvider.GetService<IAuthLogicCallback>();
+    return new AuthLogic(context, authOptions, callback);
 });
 ```
 
@@ -201,6 +203,20 @@ public class UserRoles
 }
 ```
 
+### UserClaim
+
+Stores custom claims for users (for future use).
+
+```csharp
+public class UserClaim
+{
+    public long Id { get; set; }
+    public long UserId { get; set; }
+    public virtual User? User { get; set; }
+    public string ClaimType { get; set; }
+}
+```
+
 ### CredentialsSource
 
 Enumeration of supported credential sources.
@@ -221,12 +237,13 @@ The main class for authentication operations.
 #### Constructor
 
 ```csharp
-public AuthLogic(UserDBContext context, AuthOptions options)
+public AuthLogic(UserDBContext context, AuthOptions options, IAuthLogicCallback? callback = null)
 ```
 
 **Parameters:**
 - `context`: The `UserDBContext` instance for database operations
 - `options`: `AuthOptions` containing JWT signing key and issuer
+- `callback`: Optional callback interface for handling user registration events
 
 #### Methods
 
@@ -505,14 +522,79 @@ Interface for providing user identity information. Implement this in your applic
 ```csharp
 public interface IUserProvider
 {
+    User? FindUser(ClaimsPrincipal user);
     UserWithRoles? GetIdentity(string? id);
     string? FindTelegramId(long userId);
 }
 ```
 
 **Methods:**
+- `FindUser(ClaimsPrincipal user)`: Finds a user from the claims principal (extracts user ID from various claim types)
 - `GetIdentity(string? id)`: Returns user with roles by user ID
 - `FindTelegramId(long userId)`: Finds Telegram ID for a user ID
+
+### UserProvider Implementation
+
+The library provides a default implementation `UserProvider` that can be used directly:
+
+```csharp
+using Sibvic.AuthLib;
+
+// Register UserProvider
+builder.Services.AddScoped<IUserProvider, UserProvider>();
+
+// Use in your controllers
+public class MyController : ControllerBase
+{
+    private readonly IUserProvider _userProvider;
+    
+    public MyController(IUserProvider userProvider)
+    {
+        _userProvider = userProvider;
+    }
+    
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult GetCurrentUser()
+    {
+        var user = _userProvider.FindUser(User);
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+        return Ok(user);
+    }
+}
+```
+
+## IAuthLogicCallback Interface
+
+Optional callback interface for handling events during user registration.
+
+```csharp
+public interface IAuthLogicCallback
+{
+    void BeforeUserAdded(User user);
+}
+```
+
+**Methods:**
+- `BeforeUserAdded(User user)`: Called before a new user is saved to the database during registration. Allows you to perform custom initialization or validation.
+
+**Example:**
+```csharp
+public class MyAuthCallback : IAuthLogicCallback
+{
+    public void BeforeUserAdded(User user)
+    {
+        // Perform custom initialization
+        // e.g., set default roles, send welcome email, etc.
+    }
+}
+
+// Register callback
+builder.Services.AddScoped<IAuthLogicCallback, MyAuthCallback>();
+```
 
 ## Usage Examples
 
@@ -627,6 +709,7 @@ var token = authLogic.GenerateToken(user);
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Sibvic.AuthLib;
 
 // In Program.cs or Startup.cs
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -645,15 +728,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// Register UserProvider for easy user lookup
+builder.Services.AddScoped<IUserProvider, UserProvider>();
+
 // In your controller
 [Authorize]
 [HttpGet("protected")]
 public IActionResult ProtectedEndpoint()
 {
+    // Method 1: Use UserProvider to get user from claims
+    var user = _userProvider.FindUser(User);
+    if (user == null)
+    {
+        return Unauthorized();
+    }
+    
+    // Method 2: Extract claims manually
     var userId = User.FindFirst("id")?.Value;
     var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
     
-    return Ok(new { userId, roles });
+    return Ok(new { userId, roles, user });
 }
 ```
 
@@ -667,6 +761,7 @@ The library uses the following tables:
 - `UserAgreements`: Available user agreements
 - `AcceptedUserAgreements`: User agreement acceptance records
 - `UserRoles`: User role assignments
+- `UserClaims`: Custom user claims (for future use)
 
 ## Best Practices
 

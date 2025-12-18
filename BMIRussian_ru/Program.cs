@@ -1,9 +1,12 @@
 using BMIRussian_ru.Data;
+using BMIRussian_ru.Logic;
 using BMIRussian_ru.Services;
 using Microsoft.EntityFrameworkCore;
 using Prometheus;
 using Sibvic.AuthLib;
 using Sibvic.AuthLib.Logic;
+using Sibvic.UserWithBalanceLib;
+using Sibvic.UserWithBalanceLib.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
-// Register UserDBContext to resolve to ApplicationDbContext
 builder.Services.AddScoped<UserDBContext>(serviceProvider => 
+    serviceProvider.GetRequiredService<ApplicationDbContext>());
+builder.Services.AddScoped<UserWithBalanceContext>(serviceProvider =>
     serviceProvider.GetRequiredService<ApplicationDbContext>());
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -28,6 +32,8 @@ var jwtIssuer = builder.Configuration["JWT:ISSUER"];
 builder.Services.AddSingleton(new AuthOptions(jwtKey, jwtIssuer));
 
 // Register AuthLogic
+builder.Services.AddTransient<IAuthLogicCallback, WelcomeBalanceCallback>();
+builder.Services.AddTransient<BalanceManager>();
 builder.Services.AddScoped<AuthLogic>();
 
 builder.Services.AddEndpointsApiExplorer();

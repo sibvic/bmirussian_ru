@@ -1,5 +1,6 @@
 @page
 @model BMIRussian_ru.Pages.LoginTelegramBotModel
+@using Markdig
 @{
     ViewData["Title"] = "Вход через Telegram Bot";
 }
@@ -45,7 +46,9 @@
                                         @if (!string.IsNullOrEmpty(Model.UnacceptedAgreements[i].Content))
                                         {
                                             <div class="ms-4">
-                                                <small class="text-muted">@Model.UnacceptedAgreements[i].Content</small>
+                                                <div class="text-muted small">
+                                                    @Html.Raw(Markdown.ToHtml(Model.UnacceptedAgreements[i].Content))
+                                                </div>
                                             </div>
                                         }
                                     </div>

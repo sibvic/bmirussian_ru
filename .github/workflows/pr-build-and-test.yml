@@ -1,0 +1,37 @@
+name: Build and Test on Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Configure NuGet authentication for GitHub Packages
+      run: |
+        dotnet nuget add source https://nuget.pkg.github.com/sibvic/index.json \
+          --name github \
+          --username ${{ secrets.GH_USERNAME }} \
+          --password ${{ secrets.GH_TOKEN }} \
+          --store-password-in-clear-text
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build -c Release --no-restore
+
+    - name: Run tests
+      run: dotnet test -c Release --no-build --verbosity normal
+

@@ -16,6 +16,7 @@
                     <th>Канал</th>
                     <th>Статус</th>
                     <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -41,6 +42,9 @@
                             {
                                 <img src="@video.ImageUrl" alt="" width="80" height="45" class="rounded" />
                             }
+                        </td>
+                        <td>
+                            <a asp-page="/Admin/EditVideo" asp-route-id="@video.Id">Редактировать</a>
                         </td>
                     </tr>
                 }

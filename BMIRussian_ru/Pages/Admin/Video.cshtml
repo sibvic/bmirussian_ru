@@ -1,0 +1,77 @@
+@page
+@model BMIRussian_ru.Pages.Admin.VideoModel
+@{
+    ViewData["Title"] = "Видео — Админ";
+}
+
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h4 mb-0">Видео</h1>
+        <div>
+            <a asp-page="/Admin/AddVideo" class="btn btn-primary btn-sm me-2">Добавить видео</a>
+            <a asp-page="/Admin/Channels">Каналы</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Название</th>
+                    <th>Канал</th>
+                    <th>Статус</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var video in Model.Videos)
+                {
+                    var firstUrl = video.VideoUrls?.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "#";
+                    <tr>
+                        <td>@video.PublishDate.ToString("dd.MM.yyyy")</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(firstUrl) && firstUrl != "#")
+                            {
+                                <a href="@firstUrl" target="_blank" rel="noopener">@video.Title</a>
+                            }
+                            else
+                            {
+                                @video.Title
+                            }
+                        </td>
+                        <td>@(video.Channel?.Title ?? "—")</td>
+                        <td>@Html.DisplayFor(_ => video.Status)</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(video.ImageUrl))
+                            {
+                                <img src="@video.ImageUrl" alt="" width="80" height="45" class="rounded" />
+                            }
+                        </td>
+                        <td>
+                            <a asp-page="/Admin/EditVideo" asp-route-id="@video.Id">Редактировать</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav aria-label="Навигация по страницам" class="mt-3">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                    <a class="page-link" asp-page="/Admin/Video" asp-route-pageIndex="@(Model.PageIndex - 1)" aria-label="Назад">Назад</a>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">@Model.PageIndex из @Model.TotalPages</span>
+                </li>
+                <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                    <a class="page-link" asp-page="/Admin/Video" asp-route-pageIndex="@(Model.PageIndex + 1)" aria-label="Вперёд">Вперёд</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

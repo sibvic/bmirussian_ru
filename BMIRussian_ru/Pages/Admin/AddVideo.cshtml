@@ -1,0 +1,66 @@
+@page
+@model BMIRussian_ru.Pages.Admin.AddVideoModel
+@{
+    ViewData["Title"] = "Добавить видео — Админ";
+}
+
+<div class="container mt-4">
+    <h1 class="h4 mb-4">Добавить видео</h1>
+
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="Input.Title" class="form-label"></label>
+            <input asp-for="Input.Title" class="form-control" />
+            <span asp-validation-for="Input.Title" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.Description" class="form-label"></label>
+            <textarea asp-for="Input.Description" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.ImageUrl" class="form-label"></label>
+            <input asp-for="Input.ImageUrl" class="form-control" />
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.PublishDate" class="form-label"></label>
+                <input asp-for="Input.PublishDate" class="form-control" type="date" />
+                <span asp-validation-for="Input.PublishDate" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.Status" class="form-label"></label>
+                <select asp-for="Input.Status" class="form-select" asp-items="Html.GetEnumSelectList<BMIRussian_ru.Data.VideoStatus>()"></select>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.VideoUrls" class="form-label"></label>
+            <input asp-for="Input.VideoUrls" class="form-control" />
+            <span asp-validation-for="Input.VideoUrls" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.ChannelId" class="form-label"></label>
+            <select asp-for="Input.ChannelId" class="form-select" asp-items="Model.Channels"></select>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Input.Keywords" class="form-label"></label>
+            <input asp-for="Input.Keywords" class="form-control" />
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Создать</button>
+            <a asp-page="/Admin/Video" class="btn btn-outline-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

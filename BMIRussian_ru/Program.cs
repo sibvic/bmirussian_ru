@@ -1,7 +1,11 @@
+using System.Text;
+using BMIRussian_ru.Authorization;
 using BMIRussian_ru.Data;
 using BMIRussian_ru.Logic;
 using BMIRussian_ru.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Prometheus;
 using Sibvic.AuthLib;
 using Sibvic.AuthLib.Logic;
@@ -36,9 +40,49 @@ builder.Services.AddTransient<IAuthLogicCallback, WelcomeBalanceCallback>();
 builder.Services.AddTransient<BalanceManager>();
 builder.Services.AddScoped<AuthLogic>();
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+        options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = ctx =>
+                {
+                    ctx.Token = ctx.Request.Cookies["jwtToken"];
+                    return Task.CompletedTask;
+                }
+            };
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ValidIssuer = jwtIssuer ?? builder.Configuration["JWT:Issuer"] ?? "https://bmirussian.ru",
+            ValidateIssuer = true,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    })
+    .AddCookie(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.LoginPath = "/Login";
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy => policy.Requirements.Add(new AdminRoleRequirement()));
+});
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, AdminRoleAuthorizationHandler>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers();
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages(options =>
+{
+    options.Conventions.AuthorizeFolder("/Admin", "Admin");
+});
 builder.Services.AddHttpClient();
 
 // Configure CORS
@@ -77,6 +121,7 @@ app.UseRouting();
 
 app.UseCors("APIPolicy");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

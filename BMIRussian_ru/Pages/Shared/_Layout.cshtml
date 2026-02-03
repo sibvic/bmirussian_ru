@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -50,6 +50,24 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/SideProjects">Непрофильные проекты</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/About">О нас</a>
+                        </li>
+                    </ul>
+                    @await Component.InvokeAsync("AdminMenu")
+                    <ul class="navbar-nav ms-auto">
+                        @if (Context.Request.Cookies.ContainsKey("jwtToken"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Logout">Выход</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Login">Вход</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -72,7 +90,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2016-2025 - BMIRussian.ru
+            &copy; 2016-2026 - BMIRussian.ru
             
         </div>
     </footer>

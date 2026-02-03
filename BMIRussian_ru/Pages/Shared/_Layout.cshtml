@@ -54,6 +54,7 @@
                             <a class="nav-link text-dark" asp-area="" asp-page="/About">О нас</a>
                         </li>
                     </ul>
+                    @await Component.InvokeAsync("AdminMenu")
                     @if (!Context.Request.Cookies.ContainsKey("jwtToken"))
                     {
                         <ul class="navbar-nav ms-auto">

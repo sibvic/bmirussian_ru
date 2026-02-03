@@ -204,7 +204,7 @@ namespace BMIRussian_ru.Services
                 return;
             }
 
-            if (payload == null)
+            if (payload is null)
             {
                 logger.LogWarning("Deserialized AuthRequest payload is null.");
                 return;

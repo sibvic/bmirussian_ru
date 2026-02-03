@@ -25,7 +25,7 @@ namespace BMIRussian_ru.Authorization
             }
 
             var userIdClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier)
-                ?? context.User.FindFirstValue("sub");
+                ?? context.User.FindFirstValue("id");
             if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
             {
                 return;

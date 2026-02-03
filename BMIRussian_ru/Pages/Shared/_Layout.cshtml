@@ -55,14 +55,20 @@
                         </li>
                     </ul>
                     @await Component.InvokeAsync("AdminMenu")
-                    @if (!Context.Request.Cookies.ContainsKey("jwtToken"))
-                    {
-                        <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav ms-auto">
+                        @if (Context.Request.Cookies.ContainsKey("jwtToken"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Logout">Выход</a>
+                            </li>
+                        }
+                        else
+                        {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-page="/Login">Вход</a>
                             </li>
-                        </ul>
-                    }
+                        }
+                    </ul>
                 </div>
             </div>
         </nav>

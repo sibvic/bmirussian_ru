@@ -150,7 +150,7 @@ namespace BMIRussian_ru.Services
                 return;
             }
 
-            if (payload == null)
+            if (payload is null)
             {
                 logger.LogWarning("Deserialized RegistrationRequest payload is null.");
                 return;

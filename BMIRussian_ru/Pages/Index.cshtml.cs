@@ -22,6 +22,7 @@ namespace BMIRussian_ru.Pages
         {
             LatestVideos = await _context.Videos
                 .Include(v => v.Channel)
+                .Where(v => v.Status == VideoStatus.Published)
                 .OrderByDescending(v => v.PublishDate)
                 .Take(10)
                 .ToListAsync();

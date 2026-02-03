@@ -7,3 +7,32 @@
 <div>
     <p>Добро пожаловать на BMIRussian. <a asp-page="/About">О нас и наши площадки</a>.</p>
 </div>
+
+@if (Model.LatestVideos.Any())
+{
+    <h4>Последние видео</h4>
+    <ul class="list-unstyled">
+        @foreach (var video in Model.LatestVideos)
+        {
+            var firstUrl = video.VideoUrls?.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "#";
+            <li class="mb-3 d-flex gap-2 align-items-start">
+                @if (!string.IsNullOrEmpty(video.ImageUrl))
+                {
+                    <a href="@firstUrl" target="_blank" rel="noopener" class="flex-shrink-0">
+                        <img src="@video.ImageUrl" alt="" width="120" height="68" class="rounded" />
+                    </a>
+                }
+                <div>
+                    <a href="@firstUrl" target="_blank" rel="noopener">@video.Title</a>
+                    <div class="text-muted small">
+                        @video.PublishDate.ToString("dd.MM.yyyy")
+                        @if (video.Channel != null)
+                        {
+                            <span> · @video.Channel.Title</span>
+                        }
+                    </div>
+                </div>
+            </li>
+        }
+    </ul>
+}

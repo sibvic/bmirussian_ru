@@ -1,0 +1,39 @@
+@page
+@model BMIRussian_ru.Pages.LoginModel
+@{
+    ViewData["Title"] = "Вход";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="card-title h4 mb-4 text-center">Вход на сайт</h2>
+                    <p class="text-center text-muted mb-4">
+                        Для входа на BMIRussian.ru используйте наш Telegram-бот.
+                    </p>
+                    <ol class="mb-4 ps-3">
+                        <li class="mb-2">Откройте бота в Telegram.</li>
+                        <li class="mb-2">Отправьте команду для входа (/login).</li>
+                        <li>Перейдите по ссылке из ответа бота — вы будете авторизованы на сайте.</li>
+                    </ol>
+                    @if (!string.IsNullOrWhiteSpace(Model.TelegramBotUrl))
+                    {
+                        <div class="d-grid gap-2">
+                            <a href="@Model.TelegramBotUrl" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
+                                Открыть бота в Telegram
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-center small text-muted mb-0">
+                            Откройте бота в Telegram и запросите ссылку для входа.
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

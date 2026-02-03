@@ -54,6 +54,14 @@
                             <a class="nav-link text-dark" asp-area="" asp-page="/About">О нас</a>
                         </li>
                     </ul>
+                    @if (!Context.Request.Cookies.ContainsKey("jwtToken"))
+                    {
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Login">Вход</a>
+                            </li>
+                        </ul>
+                    }
                 </div>
             </div>
         </nav>

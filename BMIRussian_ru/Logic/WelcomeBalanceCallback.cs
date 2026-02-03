@@ -8,7 +8,7 @@ namespace BMIRussian_ru.Logic
     {
         public void BeforeUserAdded(User user)
         {
-            balanceManager.Topup(user.Id, 100m, "Приветственный бонус");
+            //balanceManager.Topup(user.Id, 100m, "Приветственный бонус");
         }
     }
 }

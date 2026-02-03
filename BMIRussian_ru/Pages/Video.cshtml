@@ -1,0 +1,39 @@
+@page "/Video/{id:long?}"
+@model BMIRussian_ru.Pages.VideoModel
+@{
+    ViewData["Title"] = Model.Video?.Title ?? "Видео";
+}
+
+@if (Model.Video != null)
+{
+    <div class="container mt-3">
+        <h1 class="h4 mb-3">@Model.Video.Title</h1>
+
+        @if (!string.IsNullOrEmpty(Model.EmbedUrl))
+        {
+            <div class="ratio ratio-16x9 mb-3">
+                <iframe src="@Model.EmbedUrl" title="@Model.Video.Title" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock" frameborder="0" allowfullscreen></iframe>
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(Model.FirstVideoUrl))
+        {
+            <p class="mb-3">
+                <a href="@Model.FirstVideoUrl" target="_blank" rel="noopener" class="btn btn-primary">Смотреть видео</a>
+            </p>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Video.Description))
+        {
+            <div class="text-muted small mb-2">@Model.Video.PublishDate.ToString("dd.MM.yyyy")</div>
+            <div class="video-description">@Html.Raw(Model.Video.Description.Replace("\n", "<br />"))</div>
+        }
+        else
+        {
+            <div class="text-muted small">@Model.Video.PublishDate.ToString("dd.MM.yyyy")</div>
+        }
+
+        <p class="mt-3 mb-0">
+            <a asp-page="/Index" class="text-decoration-none">← На главную</a>
+        </p>
+    </div>
+}

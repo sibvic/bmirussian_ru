@@ -50,7 +50,7 @@ namespace BMIRussian_ru.Pages.Admin
                 Title = Input.Title,
                 Description = Input.Description,
                 ImageUrl = Input.ImageUrl,
-                PublishDate = Input.PublishDate,
+                PublishDate = DateTime.SpecifyKind(Input.PublishDate, DateTimeKind.Utc),
                 VideoUrls = Input.VideoUrls,
                 Status = Input.Status,
                 ChannelId = Input.ChannelId,

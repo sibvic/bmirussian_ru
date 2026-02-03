@@ -114,6 +114,6 @@ namespace BMIRussian_ru.Pages.Admin
         public long ChannelId { get; set; }
 
         [Display(Name = "Ключевые слова")]
-        public string Keywords { get; set; } = "";
+        public string? Keywords { get; set; } = "";
     }
 }

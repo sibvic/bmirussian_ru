@@ -56,11 +56,8 @@ namespace BMIRussian_ru.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("ChannelId")
+                    b.Property<long>("ChannelId")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("ChannelId1")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Description")
@@ -89,7 +86,7 @@ namespace BMIRussian_ru.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChannelId1");
+                    b.HasIndex("ChannelId");
 
                     b.ToTable("Videos");
                 });
@@ -292,7 +289,7 @@ namespace BMIRussian_ru.Migrations
                 {
                     b.HasOne("BMIRussian_ru.Data.Channel", "Channel")
                         .WithMany()
-                        .HasForeignKey("ChannelId1")
+                        .HasForeignKey("ChannelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

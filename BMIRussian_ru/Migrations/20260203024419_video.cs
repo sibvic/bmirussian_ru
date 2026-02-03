@@ -40,25 +40,24 @@ namespace BMIRussian_ru.Migrations
                     PublishDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     VideoUrls = table.Column<string>(type: "text", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
-                    ChannelId = table.Column<string>(type: "text", nullable: false),
-                    ChannelId1 = table.Column<long>(type: "bigint", nullable: false),
+                    ChannelId = table.Column<long>(type: "bigint", nullable: false),
                     Keywords = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Videos", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Videos_Channels_ChannelId1",
-                        column: x => x.ChannelId1,
+                        name: "FK_Videos_Channels_ChannelId",
+                        column: x => x.ChannelId,
                         principalTable: "Channels",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Videos_ChannelId1",
+                name: "IX_Videos_ChannelId",
                 table: "Videos",
-                column: "ChannelId1");
+                column: "ChannelId");
         }
 
         /// <inheritdoc />

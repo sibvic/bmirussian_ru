@@ -6,15 +6,8 @@ using BMIRussian_ru.Data;
 
 namespace BMIRussian_ru.Pages.Admin
 {
-    public class AddVideoModel : PageModel
+    public class AddVideoModel(ApplicationDbContext context) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-
-        public AddVideoModel(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         public List<SelectListItem> Channels { get; set; } = new();
 
         [BindProperty]
@@ -25,7 +18,7 @@ namespace BMIRussian_ru.Pages.Admin
             await LoadChannelsAsync();
             if (Channels.Count > 0 && Input.ChannelId == 0)
             {
-                var firstChannel = await _context.Channels
+                var firstChannel = await context.Channels
                     .OrderBy(c => c.Priority)
                     .ThenBy(c => c.Title)
                     .FirstOrDefaultAsync();
@@ -56,14 +49,14 @@ namespace BMIRussian_ru.Pages.Admin
                 ChannelId = Input.ChannelId,
                 Keywords = Input.Keywords ?? ""
             };
-            _context.Videos.Add(video);
-            await _context.SaveChangesAsync();
+            context.Videos.Add(video);
+            await context.SaveChangesAsync();
             return RedirectToPage("/Admin/Video");
         }
 
         private async Task LoadChannelsAsync()
         {
-            Channels = await _context.Channels
+            Channels = await context.Channels
                 .OrderBy(c => c.Priority)
                 .ThenBy(c => c.Title)
                 .Select(c => new SelectListItem(c.Title, c.Id.ToString()))

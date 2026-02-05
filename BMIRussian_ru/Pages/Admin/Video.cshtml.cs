@@ -22,14 +22,19 @@ namespace BMIRussian_ru.Pages.Admin
         public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
         public bool HasPreviousPage => PageIndex > 1;
         public bool HasNextPage => PageIndex < TotalPages;
+        public VideoStatus? StatusFilter { get; set; }
 
-        public async Task OnGetAsync(int pageIndex = 1)
+        public async Task OnGetAsync(int pageIndex = 1, VideoStatus? statusFilter = null)
         {
             PageIndex = Math.Max(1, pageIndex);
+            StatusFilter = statusFilter;
 
             var query = _context.Videos
                 .Include(v => v.Channel)
                 .OrderByDescending(v => v.PublishDate);
+
+            if (StatusFilter.HasValue)
+                query = query.Where(v => v.Status == StatusFilter.Value);
 
             TotalCount = await query.CountAsync();
 

@@ -14,6 +14,23 @@
         </div>
     </div>
 
+    <form method="get" class="mb-3 d-flex align-items-center gap-2 flex-wrap">
+        <label for="statusFilter" class="form-label mb-0">Статус:</label>
+        <select name="statusFilter" id="statusFilter" class="form-select form-select-sm" style="width: auto;">
+            <option value="">Все</option>
+            @foreach (var status in Enum.GetValues<BMIRussian_ru.Data.VideoStatus>())
+            {
+                <option value="@status" @(Model.StatusFilter == status ? "selected" : null)>@Html.DisplayFor(_ => status)</option>
+            }
+        </select>
+        <button type="submit" class="btn btn-sm btn-outline-secondary">Показать</button>
+        @if (Model.StatusFilter.HasValue)
+        {
+            <a asp-page="/Admin/Video" asp-route-pageIndex="1" class="btn btn-sm btn-link">Сбросить</a>
+        }
+        <input type="hidden" name="pageIndex" value="1" />
+    </form>
+
     <div class="table-responsive">
         <table class="table table-sm table-hover">
             <thead>
@@ -71,13 +88,13 @@
         <nav aria-label="Навигация по страницам" class="mt-3">
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
-                    <a class="page-link" asp-page="/Admin/Video" asp-route-pageIndex="@(Model.PageIndex - 1)" aria-label="Назад">Назад</a>
+                    <a class="page-link" asp-page="/Admin/Video" asp-route-pageIndex="@(Model.PageIndex - 1)" asp-route-statusFilter="@Model.StatusFilter" aria-label="Назад">Назад</a>
                 </li>
                 <li class="page-item disabled">
                     <span class="page-link">@Model.PageIndex из @Model.TotalPages</span>
                 </li>
                 <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
-                    <a class="page-link" asp-page="/Admin/Video" asp-route-pageIndex="@(Model.PageIndex + 1)" aria-label="Вперёд">Вперёд</a>
+                    <a class="page-link" asp-page="/Admin/Video" asp-route-pageIndex="@(Model.PageIndex + 1)" asp-route-statusFilter="@Model.StatusFilter" aria-label="Вперёд">Вперёд</a>
                 </li>
             </ul>
         </nav>

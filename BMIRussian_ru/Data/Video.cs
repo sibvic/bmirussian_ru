@@ -31,5 +31,7 @@ namespace BMIRussian_ru.Data
         public virtual Channel Channel { get; set; }
 
         public string Keywords { get; set; }
+
+        public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();
     }
 }

@@ -49,9 +49,14 @@
             <select asp-for="Input.ChannelId" class="form-select" asp-items="Model.Channels"></select>
         </div>
 
-        <div class="mb-4">
+        <div class="mb-3">
             <label asp-for="Input.Keywords" class="form-label"></label>
             <input asp-for="Input.Keywords" class="form-control" />
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Input.Tags" class="form-label"></label>
+            <input asp-for="Input.Tags" class="form-control" placeholder="тег1, тег2, тег3" />
         </div>
 
         <div class="d-flex gap-2">

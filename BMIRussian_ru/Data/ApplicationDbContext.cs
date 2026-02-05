@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Sibvic.UserWithBalanceLib.Data;
 
 namespace BMIRussian_ru.Data
@@ -7,5 +7,6 @@ namespace BMIRussian_ru.Data
     {
         public virtual DbSet<Channel> Channels { get; set; }
         public virtual DbSet<Video> Videos { get; set; }
+        public virtual DbSet<Tag> Tags { get; set; }
     }
 }

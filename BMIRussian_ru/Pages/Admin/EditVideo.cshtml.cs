@@ -28,11 +28,15 @@ namespace BMIRussian_ru.Pages.Admin
         {
             var video = await _context.Videos
                 .Include(v => v.Channel)
+                .Include(v => v.Tags)
                 .FirstOrDefaultAsync(v => v.Id == id);
             if (video == null)
                 return NotFound();
 
             VideoId = video.Id;
+            var tagsString = video.Tags.Count > 0
+                ? string.Join(", ", video.Tags.OrderBy(t => t.TagText).Select(t => t.TagText))
+                : "";
             Input = new EditVideoInput
             {
                 Title = video.Title,
@@ -42,7 +46,8 @@ namespace BMIRussian_ru.Pages.Admin
                 VideoUrls = video.VideoUrls,
                 Status = video.Status,
                 ChannelId = video.ChannelId,
-                Keywords = video.Keywords ?? ""
+                Keywords = video.Keywords ?? "",
+                Tags = tagsString
             };
 
             await LoadChannelsAsync();
@@ -71,6 +76,24 @@ namespace BMIRussian_ru.Pages.Admin
             video.Status = Input.Status;
             video.ChannelId = Input.ChannelId;
             video.Keywords = Input.Keywords ?? "";
+
+            var newTagSet = (Input.Tags ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(s => s.ToLowerInvariant())
+                .Where(s => s.Length > 0)
+                .Distinct()
+                .ToHashSet();
+
+            var existingTags = await _context.Tags.Where(t => t.VideoId == id).ToListAsync();
+            var toRemove = existingTags.Where(t => !newTagSet.Contains(t.TagText)).ToList();
+            var existingTexts = existingTags.Select(t => t.TagText).ToHashSet();
+            var toAdd = newTagSet.Where(t => !existingTexts.Contains(t)).ToList();
+
+            _context.Tags.RemoveRange(toRemove);
+            foreach (var tagText in toAdd)
+            {
+                _context.Tags.Add(new Tag { VideoId = id, TagText = tagText });
+            }
 
             await _context.SaveChangesAsync();
             return RedirectToPage("/Admin/Video");
@@ -117,5 +140,8 @@ namespace BMIRussian_ru.Pages.Admin
 
         [Display(Name = "Ключевые слова")]
         public string? Keywords { get; set; } = "";
+
+        [Display(Name = "Теги (через запятую)")]
+        public string? Tags { get; set; } = "";
     }
 }

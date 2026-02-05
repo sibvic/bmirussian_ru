@@ -53,6 +53,19 @@ namespace BMIRussian_ru.Pages.Admin
             };
             context.Videos.Add(video);
             await context.SaveChangesAsync();
+
+            var tagTexts = (Input.Tags ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(s => s.ToLowerInvariant())
+                .Where(s => s.Length > 0)
+                .Distinct();
+            foreach (var tagText in tagTexts)
+            {
+                context.Tags.Add(new Tag { VideoId = video.Id, TagText = tagText });
+            }
+            if (tagTexts.Any())
+                await context.SaveChangesAsync();
+
             return RedirectToPage("/Admin/Video");
         }
 

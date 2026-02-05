@@ -66,7 +66,7 @@ namespace BMIRussian_ru.Pages.Admin
             video.SEOId = SeoIdHelper.FromTitle(Input.Title);
             video.Description = Input.Description;
             video.ImageUrl = Input.ImageUrl;
-            video.PublishDate = Input.PublishDate;
+            video.PublishDate = DateTime.SpecifyKind(Input.PublishDate, DateTimeKind.Utc);
             video.VideoUrls = Input.VideoUrls;
             video.Status = Input.Status;
             video.ChannelId = Input.ChannelId;

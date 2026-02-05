@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -45,7 +46,7 @@ namespace BMIRussian_ru.Pages.Admin
                 }
 
                 var videoSeoId = values[0]?.Trim().Trim('\'') ?? "";
-                var description = values[2]?.Trim().Trim('\'') ?? "";
+                var description = Regex.Replace(values[2]?.Trim().Trim('\'') ?? "", @"<br\s*/?>", "\n", RegexOptions.IgnoreCase);
                 var imageUrl = values[3]?.Trim().Trim('\'') ?? "";
                 var dateStr = values[4]?.Trim().Trim('\'') ?? "";
                 var title = values[6]?.Trim().Trim('\'') ?? "";

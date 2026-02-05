@@ -1,0 +1,34 @@
+@page
+@model BMIRussian_ru.Pages.Admin.ImportVideoModel
+@{
+    ViewData["Title"] = "Импорт видео — Админ";
+}
+
+<div class="container mt-4">
+    <h1 class="h4 mb-4">Импорт видео</h1>
+
+    <p class="text-muted small mb-3">
+        Формат: ('Video.SeoId', 'Channel.SeoId', '', 'ImageUrl', 'Date', ignore, 'Title', 'videoUrl', ...)<br />
+        Пример: ('TOYOTA-PROTIV-HONDA-...', 'BEST-MOTORING', '', 'http://...', '2017-03-12 00:00:00', 2, 'Toyota против Honda...', '//vk.com/...', ...)
+    </p>
+
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        @if (!string.IsNullOrEmpty(Model.Message))
+        {
+            <div class="alert @(Model.IsError ? "alert-danger" : "alert-success") mb-3">@Model.Message</div>
+        }
+
+        <div class="mb-3">
+            <label asp-for="Data" class="form-label">Данные</label>
+            <textarea asp-for="Data" class="form-control font-monospace" rows="12" placeholder="('SEO-ID', 'CHANNEL-SEO-ID', '', 'http://...', '2017-03-12 00:00:00', 2, 'Название', '//vk.com/...', ...)"></textarea>
+            <span asp-validation-for="Data" class="text-danger"></span>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Импортировать</button>
+            <a asp-page="/Admin/Video" class="btn btn-outline-secondary">Отмена</a>
+        </div>
+    </form>
+</div>

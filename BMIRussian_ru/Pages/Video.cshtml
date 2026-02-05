@@ -28,7 +28,7 @@
                 @Model.Video.PublishDate.ToString("dd.MM.yyyy")
                 @if (Model.Video.Channel != null)
                 {
-                    <span> · <a asp-page="/Channel" asp-route-id="@Model.Video.Channel.Id">@Model.Video.Channel.Title</a></span>
+                    <span> · <a asp-page="/Channel" asp-route-seoId="@(Model.Video.Channel.SEOId ?? Model.Video.Channel.Id.ToString())">@Model.Video.Channel.Title</a></span>
                 }
             </div>
             <div class="video-description">@Html.Raw(Model.Video.Description.Replace("\n", "<br />"))</div>
@@ -39,7 +39,7 @@
                 @Model.Video.PublishDate.ToString("dd.MM.yyyy")
                 @if (Model.Video.Channel != null)
                 {
-                    <span> · <a asp-page="/Channel" asp-route-id="@Model.Video.Channel.Id">@Model.Video.Channel.Title</a></span>
+                    <span> · <a asp-page="/Channel" asp-route-seoId="@(Model.Video.Channel.SEOId ?? Model.Video.Channel.Id.ToString())">@Model.Video.Channel.Title</a></span>
                 }
             </div>
         }

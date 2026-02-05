@@ -13,12 +13,12 @@
             <li class="mb-3 d-flex gap-3 align-items-start">
                 @if (!string.IsNullOrEmpty(channel.ImageUrl))
                 {
-                    <a asp-page="/Channel" asp-route-id="@channel.Id" class="flex-shrink-0">
+                    <a asp-page="/Channel" asp-route-seoId="@(channel.SEOId ?? channel.Id.ToString())" class="flex-shrink-0">
                         <img src="@channel.ImageUrl" alt="" width="80" height="80" class="rounded" />
                     </a>
                 }
                 <div>
-                    <a asp-page="/Channel" asp-route-id="@channel.Id" class="text-decoration-none fw-semibold">@channel.Title</a>
+                    <a asp-page="/Channel" asp-route-seoId="@(channel.SEOId ?? channel.Id.ToString())" class="text-decoration-none fw-semibold">@channel.Title</a>
                     @if (!string.IsNullOrWhiteSpace(channel.Description))
                     {
                         <p class="text-muted small mb-0 mt-1">@channel.Description</p>

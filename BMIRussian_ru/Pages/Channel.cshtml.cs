@@ -24,9 +24,11 @@ namespace BMIRussian_ru.Pages
         public bool HasPreviousPage => PageIndex > 1;
         public bool HasNextPage => PageIndex < TotalPages;
 
-        public async Task<IActionResult> OnGetAsync(long id, int pageIndex = 1)
+        public async Task<IActionResult> OnGetAsync(string seoId, int pageIndex = 1)
         {
-            var channel = await _context.Channels.FindAsync(id);
+            var channel = await _context.Channels
+                .FirstOrDefaultAsync(c => c.SEOId != null && c.SEOId.Equals(seoId, StringComparison.OrdinalIgnoreCase))
+                ?? (long.TryParse(seoId, out var id) ? await _context.Channels.FindAsync(id) : null);
             if (channel == null)
                 return NotFound();
 
@@ -35,7 +37,7 @@ namespace BMIRussian_ru.Pages
 
             var query = _context.Videos
                 .Include(v => v.Channel)
-                .Where(v => v.ChannelId == id && v.Status == VideoStatus.Published)
+                .Where(v => v.ChannelId == channel.Id && v.Status == VideoStatus.Published)
                 .OrderByDescending(v => v.PublishDate);
 
             TotalCount = await query.CountAsync();

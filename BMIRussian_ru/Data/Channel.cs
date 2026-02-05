@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace BMIRussian_ru.Data
@@ -12,6 +12,9 @@ namespace BMIRussian_ru.Data
         [Required]
         [Display(Name = "Название")]
         public string Title { get; set; }
+
+        [Display(Name = "SEO ID (для URL)")]
+        public string? SEOId { get; set; }
 
         [DataType(DataType.ImageUrl)]
         [Display(Name = "Ссылка на миниатюру")]

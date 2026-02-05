@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BMIRussian_ru.Data;
+using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
@@ -50,6 +51,7 @@ namespace BMIRussian_ru.Pages.Admin
 
             channel.Priority = Input.Priority;
             channel.Title = Input.Title;
+            channel.SEOId = SeoIdHelper.FromTitle(Input.Title);
             channel.ImageUrl = Input.ImageUrl;
             channel.Description = Input.Description;
 

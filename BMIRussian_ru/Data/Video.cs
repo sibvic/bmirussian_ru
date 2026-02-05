@@ -9,6 +9,9 @@ namespace BMIRussian_ru.Data
         [Required]
         public string Title { get; set; }
 
+        /// <summary>Normalized title for URLs (transliteration, uppercase, spaces→hyphens). Filled automatically.</summary>
+        public string? SEOId { get; set; }
+
         [DataType(DataType.MultilineText)]
         public string? Description { get; set; }
 

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BMIRussian_ru.Data;
+using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
@@ -62,6 +63,7 @@ namespace BMIRussian_ru.Pages.Admin
             }
 
             video.Title = Input.Title;
+            video.SEOId = SeoIdHelper.FromTitle(Input.Title);
             video.Description = Input.Description;
             video.ImageUrl = Input.ImageUrl;
             video.PublishDate = Input.PublishDate;

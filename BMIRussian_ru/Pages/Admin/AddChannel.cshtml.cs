@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using BMIRussian_ru.Data;
+using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
@@ -31,6 +32,7 @@ namespace BMIRussian_ru.Pages.Admin
             {
                 Priority = Input.Priority,
                 Title = Input.Title,
+                SEOId = SeoIdHelper.FromTitle(Input.Title),
                 ImageUrl = Input.ImageUrl,
                 Description = Input.Description
             };

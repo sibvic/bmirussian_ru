@@ -1,0 +1,57 @@
+@page "/Channel/{id:long}"
+@model BMIRussian_ru.Pages.ChannelModel
+@{
+    ViewData["Title"] = Model.Channel?.Title ?? "Канал";
+}
+
+@if (Model.Channel != null)
+{
+    <div class="container mt-3">
+        <p class="mb-2">
+            <a asp-page="/Index" class="text-decoration-none">← На главную</a>
+        </p>
+        <h1 class="h4 mb-4">@Model.Channel.Title</h1>
+
+        @if (Model.Videos.Any())
+        {
+            <ul class="list-unstyled">
+                @foreach (var video in Model.Videos)
+                {
+                    <li class="mb-3 d-flex gap-2 align-items-start">
+                        @if (!string.IsNullOrEmpty(video.ImageUrl))
+                        {
+                            <a asp-page="/Video" asp-route-id="@video.Id" class="flex-shrink-0">
+                                <img src="@video.ImageUrl" alt="" width="120" height="68" class="rounded" />
+                            </a>
+                        }
+                        <div>
+                            <a asp-page="/Video" asp-route-id="@video.Id">@video.Title</a>
+                            <div class="text-muted small">@video.PublishDate.ToString("dd.MM.yyyy")</div>
+                        </div>
+                    </li>
+                }
+            </ul>
+
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Навигация по страницам" class="mt-3">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                            <a class="page-link" asp-page="/Channel" asp-route-id="@Model.Channel.Id" asp-route-pageIndex="@(Model.PageIndex - 1)" aria-label="Назад">Назад</a>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link">@Model.PageIndex из @Model.TotalPages</span>
+                        </li>
+                        <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                            <a class="page-link" asp-page="/Channel" asp-route-id="@Model.Channel.Id" asp-route-pageIndex="@(Model.PageIndex + 1)" aria-label="Вперёд">Вперёд</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        }
+        else
+        {
+            <p class="text-muted">В этом канале пока нет опубликованных видео.</p>
+        }
+    </div>
+}

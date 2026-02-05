@@ -23,7 +23,7 @@
                         @video.PublishDate.ToString("dd.MM.yyyy")
                         @if (video.Channel != null)
                         {
-                            <span> · @video.Channel.Title</span>
+                            <span> · <a asp-page="/Channel" asp-route-id="@video.Channel.Id">@video.Channel.Title</a></span>
                         }
                     </div>
                 </div>

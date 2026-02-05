@@ -6,7 +6,7 @@
 
 @if (Model.LatestVideos.Any())
 {
-    <h4>Последние видео</h4>
+    <h4><a asp-page="/Videos" class="text-decoration-none text-dark">Последние видео</a></h4>
     <ul class="list-unstyled">
         @foreach (var video in Model.LatestVideos)
         {

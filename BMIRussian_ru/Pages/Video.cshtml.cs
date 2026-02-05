@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BMIRussian_ru.Data;
+using Sibvic.AuthLib;
 
 namespace BMIRussian_ru.Pages
 {
@@ -21,6 +23,8 @@ namespace BMIRussian_ru.Pages
 
         /// <summary>Embed URL for YouTube or VK when first URL is embeddable; otherwise null.</summary>
         public string? EmbedUrl { get; set; }
+
+        public bool IsAdmin { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string? seoId)
         {
@@ -63,6 +67,14 @@ namespace BMIRussian_ru.Pages
                     if (vkEmbed != null)
                         EmbedUrl = vkEmbed;
                 }
+            }
+
+            if (HttpContext.User.Identity?.IsAuthenticated == true)
+            {
+                var userIdClaim = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? HttpContext.User.FindFirstValue("id");
+                if (!string.IsNullOrEmpty(userIdClaim) && long.TryParse(userIdClaim, out var userId))
+                    IsAdmin = await _context.Set<UserRoles>().AnyAsync(r => r.UserId == userId && r.Role == "Admin");
             }
 
             return Page();

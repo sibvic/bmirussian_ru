@@ -20,7 +20,14 @@
             <option value="">Все</option>
             @foreach (var status in Enum.GetValues<BMIRussian_ru.Data.VideoStatus>())
             {
-                <option value="@status" @(Model.StatusFilter == status ? "selected" : null)>@Html.DisplayFor(_ => status)</option>
+                if (Model.StatusFilter == status)
+                {
+                    <option value="@((int)status)" selected>@Html.DisplayFor(_ => status)</option>
+                }
+                else
+                {
+                    <option value="@((int)status)">@Html.DisplayFor(_ => status)</option>
+                }
             }
         </select>
         <button type="submit" class="btn btn-sm btn-outline-secondary">Показать</button>

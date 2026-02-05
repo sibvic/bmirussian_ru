@@ -29,7 +29,7 @@ namespace BMIRussian_ru.Pages.Admin
             PageIndex = Math.Max(1, pageIndex);
             StatusFilter = statusFilter;
 
-            var query = _context.Videos
+            IQueryable<Video> query = _context.Videos
                 .Include(v => v.Channel)
                 .OrderByDescending(v => v.PublishDate);
 

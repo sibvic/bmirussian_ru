@@ -10,7 +10,6 @@
         <div>
             <a asp-page="/Admin/AddVideo" class="btn btn-primary btn-sm me-2">Добавить видео</a>
             <a asp-page="/Admin/ImportVideo" class="btn btn-outline-secondary btn-sm me-2">Импорт</a>
-            <a asp-page="/Admin/Channels">Каналы</a>
         </div>
     </div>
 
@@ -66,7 +65,6 @@
                                 @video.Title
                             }
                         </td>
-                        <td>@(video.Channel?.Title ?? "—")</td>
                         <td>@Html.DisplayFor(_ => video.Status)</td>
                         <td>
                             @if (!string.IsNullOrEmpty(video.ImageUrl))

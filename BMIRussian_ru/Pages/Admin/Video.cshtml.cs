@@ -30,7 +30,6 @@ namespace BMIRussian_ru.Pages.Admin
             StatusFilter = statusFilter;
 
             IQueryable<Video> query = _context.Videos
-                .Include(v => v.Channel)
                 .OrderByDescending(v => v.PublishDate);
 
             if (StatusFilter.HasValue)

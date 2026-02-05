@@ -1,9 +1,5 @@
 @model BMIRussian_ru.Data.Video
 @Model.PublishDate.ToString("dd.MM.yyyy")
-@if (Model.Channel != null)
-{
-    <span> · <a asp-page="/Channel" asp-route-seoId="@(Model.Channel.SEOId ?? Model.Channel.Id.ToString())">@Model.Channel.Title</a></span>
-}
 @if (Model.Tags?.Any() == true)
 {
     <span> · 

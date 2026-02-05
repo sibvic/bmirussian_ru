@@ -9,23 +9,11 @@ namespace BMIRussian_ru.Pages.Admin
 {
     public class AddVideoModel(ApplicationDbContext context) : PageModel
     {
-        public List<SelectListItem> Channels { get; set; } = new();
-
         [BindProperty]
         public EditVideoInput Input { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync()
         {
-            await LoadChannelsAsync();
-            if (Channels.Count > 0 && Input.ChannelId == 0)
-            {
-                var firstChannel = await context.Channels
-                    .OrderBy(c => c.Priority)
-                    .ThenBy(c => c.Title)
-                    .FirstOrDefaultAsync();
-                if (firstChannel != null)
-                    Input.ChannelId = firstChannel.Id;
-            }
             Input.PublishDate = DateTime.UtcNow.Date;
             Input.Status = VideoStatus.Editing;
             return Page();
@@ -35,7 +23,6 @@ namespace BMIRussian_ru.Pages.Admin
         {
             if (!ModelState.IsValid)
             {
-                await LoadChannelsAsync();
                 return Page();
             }
 
@@ -48,7 +35,6 @@ namespace BMIRussian_ru.Pages.Admin
                 PublishDate = DateTime.SpecifyKind(Input.PublishDate, DateTimeKind.Utc),
                 VideoUrls = Input.VideoUrls,
                 Status = Input.Status,
-                ChannelId = Input.ChannelId,
                 Keywords = Input.Keywords ?? ""
             };
             context.Videos.Add(video);
@@ -67,15 +53,6 @@ namespace BMIRussian_ru.Pages.Admin
                 await context.SaveChangesAsync();
 
             return RedirectToPage("/Admin/Video");
-        }
-
-        private async Task LoadChannelsAsync()
-        {
-            Channels = await context.Channels
-                .OrderBy(c => c.Priority)
-                .ThenBy(c => c.Title)
-                .Select(c => new SelectListItem(c.Title, c.Id.ToString()))
-                .ToListAsync();
         }
     }
 }

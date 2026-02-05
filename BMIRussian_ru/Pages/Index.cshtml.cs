@@ -21,7 +21,6 @@ namespace BMIRussian_ru.Pages
         public async Task OnGetAsync()
         {
             LatestVideos = await _context.Videos
-                .Include(v => v.Channel)
                 .Include(v => v.Tags)
                 .Where(v => v.Status == VideoStatus.Published)
                 .OrderByDescending(v => v.PublishDate)

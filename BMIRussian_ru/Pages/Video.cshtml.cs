@@ -28,10 +28,9 @@ namespace BMIRussian_ru.Pages
                 return NotFound();
 
             var video = await _context.Videos
-                .Include(v => v.Channel)
                 .Include(v => v.Tags)
                 .FirstOrDefaultAsync(v => v.SEOId != null && v.SEOId.Equals(seoId, StringComparison.OrdinalIgnoreCase) && v.Status == VideoStatus.Published)
-                ?? (long.TryParse(seoId, out var id) ? await _context.Videos.Include(v => v.Channel).Include(v => v.Tags).FirstOrDefaultAsync(v => v.Id == id && v.Status == VideoStatus.Published) : null);
+                ?? (long.TryParse(seoId, out var id) ? await _context.Videos.Include(v => v.Tags).FirstOrDefaultAsync(v => v.Id == id && v.Status == VideoStatus.Published) : null);
 
             if (video == null)
                 return NotFound();

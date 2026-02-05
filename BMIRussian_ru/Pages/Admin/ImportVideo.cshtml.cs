@@ -33,7 +33,6 @@ namespace BMIRussian_ru.Pages.Admin
                 return Page();
             }
 
-            var channels = await context.Channels.ToDictionaryAsync(c => (c.SEOId ?? "").ToUpperInvariant(), c => c);
             var imported = 0;
             var errors = new List<string>();
 
@@ -46,7 +45,6 @@ namespace BMIRussian_ru.Pages.Admin
                 }
 
                 var videoSeoId = values[0]?.Trim().Trim('\'') ?? "";
-                var channelSeoId = values[1]?.Trim().Trim('\'') ?? "";
                 var description = values[2]?.Trim().Trim('\'') ?? "";
                 var imageUrl = values[3]?.Trim().Trim('\'') ?? "";
                 var dateStr = values[4]?.Trim().Trim('\'') ?? "";
@@ -58,13 +56,6 @@ namespace BMIRussian_ru.Pages.Admin
                     errors.Add($"Пропущены название или URL: '{title}' / '{videoUrl}'");
                     continue;
                 }
-
-                if (!channels.TryGetValue(channelSeoId.ToUpperInvariant(), out var channel))
-                {
-                    errors.Add($"Канал не найден по SEO ID: '{channelSeoId}'");
-                    continue;
-                }
-
                 if (!DateTime.TryParse(dateStr, out var publishDate))
                     publishDate = DateTime.UtcNow.Date;
 
@@ -77,7 +68,6 @@ namespace BMIRussian_ru.Pages.Admin
                     PublishDate = DateTime.SpecifyKind(publishDate, DateTimeKind.Utc),
                     VideoUrls = videoUrl,
                     Status = VideoStatus.Editing,
-                    ChannelId = channel.Id,
                     Keywords = ""
                 };
                 context.Videos.Add(video);

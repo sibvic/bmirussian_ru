@@ -17,8 +17,6 @@ namespace BMIRussian_ru.Pages.Admin
             _context = context;
         }
 
-        public List<SelectListItem> Channels { get; set; } = new();
-
         [BindProperty]
         public EditVideoInput Input { get; set; } = new();
 
@@ -27,7 +25,6 @@ namespace BMIRussian_ru.Pages.Admin
         public async Task<IActionResult> OnGetAsync(long id)
         {
             var video = await _context.Videos
-                .Include(v => v.Channel)
                 .Include(v => v.Tags)
                 .FirstOrDefaultAsync(v => v.Id == id);
             if (video == null)
@@ -45,12 +42,10 @@ namespace BMIRussian_ru.Pages.Admin
                 PublishDate = video.PublishDate,
                 VideoUrls = video.VideoUrls,
                 Status = video.Status,
-                ChannelId = video.ChannelId,
                 Keywords = video.Keywords ?? "",
                 Tags = tagsString
             };
 
-            await LoadChannelsAsync();
             return Page();
         }
 
@@ -63,7 +58,6 @@ namespace BMIRussian_ru.Pages.Admin
             if (!ModelState.IsValid)
             {
                 VideoId = id;
-                await LoadChannelsAsync();
                 return Page();
             }
 
@@ -74,7 +68,6 @@ namespace BMIRussian_ru.Pages.Admin
             video.PublishDate = DateTime.SpecifyKind(Input.PublishDate, DateTimeKind.Utc);
             video.VideoUrls = Input.VideoUrls;
             video.Status = Input.Status;
-            video.ChannelId = Input.ChannelId;
             video.Keywords = Input.Keywords ?? "";
 
             var newTagSet = (Input.Tags ?? "")
@@ -97,15 +90,6 @@ namespace BMIRussian_ru.Pages.Admin
 
             await _context.SaveChangesAsync();
             return RedirectToPage("/Admin/Video");
-        }
-
-        private async Task LoadChannelsAsync()
-        {
-            Channels = await _context.Channels
-                .OrderBy(c => c.Priority)
-                .ThenBy(c => c.Title)
-                .Select(c => new SelectListItem(c.Title, c.Id.ToString()))
-                .ToListAsync();
         }
     }
 
@@ -134,9 +118,6 @@ namespace BMIRussian_ru.Pages.Admin
 
         [Display(Name = "Статус")]
         public VideoStatus Status { get; set; }
-
-        [Display(Name = "Канал")]
-        public long ChannelId { get; set; }
 
         [Display(Name = "Ключевые слова")]
         public string? Keywords { get; set; } = "";

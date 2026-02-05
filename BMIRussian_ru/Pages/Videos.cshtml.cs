@@ -27,7 +27,6 @@ namespace BMIRussian_ru.Pages
             PageIndex = Math.Max(1, pageIndex);
 
             var query = _context.Videos
-                .Include(v => v.Channel)
                 .Include(v => v.Tags)
                 .Where(v => v.Status == VideoStatus.Published)
                 .OrderByDescending(v => v.PublishDate);

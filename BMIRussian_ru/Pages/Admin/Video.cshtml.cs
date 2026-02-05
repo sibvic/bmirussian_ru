@@ -24,10 +24,32 @@ namespace BMIRussian_ru.Pages.Admin
         public bool HasNextPage => PageIndex < TotalPages;
         public VideoStatus? StatusFilter { get; set; }
 
-        public async Task OnGetAsync(int pageIndex = 1, VideoStatus? statusFilter = null)
+        private const string StatusFilterKey = "Admin.Video.StatusFilter";
+
+        public async Task OnGetAsync(int pageIndex = 1, VideoStatus? statusFilter = null, bool clearFilter = false)
         {
             PageIndex = Math.Max(1, pageIndex);
-            StatusFilter = statusFilter;
+
+            if (clearFilter)
+            {
+                Response.Cookies.Delete(StatusFilterKey, new CookieOptions { Path = "/" });
+                StatusFilter = null;
+            }
+            else if (Request.Query.ContainsKey("statusFilter"))
+            {
+                StatusFilter = statusFilter;
+                if (statusFilter.HasValue)
+                    Response.Cookies.Append(StatusFilterKey, ((int)statusFilter.Value).ToString(), new CookieOptions { Path = "/", MaxAge = TimeSpan.FromDays(30) });
+                else
+                    Response.Cookies.Delete(StatusFilterKey, new CookieOptions { Path = "/" });
+            }
+            else
+            {
+                if (Request.Cookies.TryGetValue(StatusFilterKey, out var cookieVal) && int.TryParse(cookieVal, out var saved) && Enum.IsDefined(typeof(VideoStatus), saved))
+                    StatusFilter = (VideoStatus)saved;
+                else
+                    StatusFilter = null;
+            }
 
             IQueryable<Video> query = _context.Videos
                 .OrderByDescending(v => v.PublishDate);

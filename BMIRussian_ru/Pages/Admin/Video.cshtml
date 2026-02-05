@@ -32,7 +32,7 @@
         <button type="submit" class="btn btn-sm btn-outline-secondary">Показать</button>
         @if (Model.StatusFilter.HasValue)
         {
-            <a asp-page="/Admin/Video" asp-route-pageIndex="1" class="btn btn-sm btn-link">Сбросить</a>
+            <a asp-page="/Admin/Video" asp-route-pageIndex="1" asp-route-clearFilter="true" class="btn btn-sm btn-link">Сбросить</a>
         }
         <input type="hidden" name="pageIndex" value="1" />
     </form>

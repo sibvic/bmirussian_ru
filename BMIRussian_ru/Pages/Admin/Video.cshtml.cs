@@ -38,5 +38,16 @@ namespace BMIRussian_ru.Pages.Admin
                 .Take(PageSize)
                 .ToListAsync();
         }
+
+        public async Task<IActionResult> OnPostDeleteAsync(long id)
+        {
+            var video = await _context.Videos.FindAsync(id);
+            if (video != null)
+            {
+                _context.Videos.Remove(video);
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToPage();
+        }
     }
 }

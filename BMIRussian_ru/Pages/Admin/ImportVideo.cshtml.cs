@@ -84,12 +84,13 @@ namespace BMIRussian_ru.Pages.Admin
 
             await context.SaveChangesAsync();
 
+            if (imported > 0 && errors.Count == 0)
+                return RedirectToPage("/Admin/Video");
+
             Message = imported > 0
                 ? $"Импортировано видео: {imported}." + (errors.Count > 0 ? " Ошибки: " + string.Join("; ", errors) : "")
                 : "Ошибки: " + string.Join("; ", errors);
-            IsError = errors.Count > 0 && imported == 0;
-            Data = "";
-
+            IsError = errors.Count > 0;
             return Page();
         }
 

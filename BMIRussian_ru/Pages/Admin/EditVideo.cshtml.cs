@@ -40,7 +40,7 @@ namespace BMIRussian_ru.Pages.Admin
                 Description = video.Description,
                 ImageUrl = video.ImageUrl,
                 PublishDate = video.PublishDate,
-                VideoUrls = video.VideoUrls,
+                VideoUrls = VideoUrlHelper.NormalizeVideoUrls(video.VideoUrls),
                 Status = video.Status,
                 Keywords = video.Keywords ?? "",
                 Tags = tagsString
@@ -66,7 +66,7 @@ namespace BMIRussian_ru.Pages.Admin
             video.Description = Input.Description;
             video.ImageUrl = Input.ImageUrl;
             video.PublishDate = DateTime.SpecifyKind(Input.PublishDate, DateTimeKind.Utc);
-            video.VideoUrls = Input.VideoUrls;
+            video.VideoUrls = VideoUrlHelper.NormalizeVideoUrls(Input.VideoUrls);
             video.Status = Input.Status;
             video.Keywords = Input.Keywords ?? "";
 

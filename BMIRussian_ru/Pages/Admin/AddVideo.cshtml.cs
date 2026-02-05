@@ -33,7 +33,7 @@ namespace BMIRussian_ru.Pages.Admin
                 Description = Input.Description,
                 ImageUrl = Input.ImageUrl,
                 PublishDate = DateTime.SpecifyKind(Input.PublishDate, DateTimeKind.Utc),
-                VideoUrls = Input.VideoUrls,
+                VideoUrls = VideoUrlHelper.NormalizeVideoUrls(Input.VideoUrls),
                 Status = Input.Status,
                 Keywords = Input.Keywords ?? ""
             };

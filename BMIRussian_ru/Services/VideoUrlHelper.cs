@@ -22,6 +22,9 @@ namespace BMIRussian_ru.Services
         {
             if (string.IsNullOrWhiteSpace(url))
                 return url;
+            url = url.Trim();
+            if (url.StartsWith("//", StringComparison.Ordinal))
+                url = "https:" + url;
             var normalized = TryNormalizeYouTubeUrl(url);
             if (normalized != null)
                 return normalized;

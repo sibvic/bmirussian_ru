@@ -25,35 +25,6 @@ namespace BMIRussian_ru.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("BMIRussian_ru.Data.Channel", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Priority")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("SEOId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Channels");
-                });
-
             modelBuilder.Entity("BMIRussian_ru.Data.Video", b =>
                 {
                     b.Property<long>("Id")
@@ -61,9 +32,6 @@ namespace BMIRussian_ru.Migrations
                         .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("ChannelId")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -93,8 +61,6 @@ namespace BMIRussian_ru.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ChannelId");
 
                     b.ToTable("Videos");
                 });
@@ -314,19 +280,6 @@ namespace BMIRussian_ru.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Transactions");
-                });
-
-            modelBuilder.Entity("BMIRussian_ru.Data.Video", b =>
-                {
-                    b.HasOne("BMIRussian_ru.Data.Channel", "Channel")
-                        .WithMany()
-                        .HasForeignKey("ChannelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Channel");
-
-                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("BMIRussian_ru.Data.Tag", b =>

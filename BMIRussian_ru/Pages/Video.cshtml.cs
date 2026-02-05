@@ -22,14 +22,15 @@ namespace BMIRussian_ru.Pages
         /// <summary>Embed URL for YouTube or VK when first URL is embeddable; otherwise null.</summary>
         public string? EmbedUrl { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(long? id)
+        public async Task<IActionResult> OnGetAsync(string? seoId)
         {
-            if (id == null)
+            if (string.IsNullOrEmpty(seoId))
                 return NotFound();
 
             var video = await _context.Videos
                 .Include(v => v.Channel)
-                .FirstOrDefaultAsync(v => v.Id == id && v.Status == VideoStatus.Published);
+                .FirstOrDefaultAsync(v => v.SEOId != null && v.SEOId.Equals(seoId, StringComparison.OrdinalIgnoreCase) && v.Status == VideoStatus.Published)
+                ?? (long.TryParse(seoId, out var id) ? await _context.Videos.Include(v => v.Channel).FirstOrDefaultAsync(v => v.Id == id && v.Status == VideoStatus.Published) : null);
 
             if (video == null)
                 return NotFound();

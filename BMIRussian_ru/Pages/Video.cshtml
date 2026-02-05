@@ -25,22 +25,14 @@
         @if (!string.IsNullOrWhiteSpace(Model.Video.Description))
         {
             <div class="text-muted small mb-2">
-                @Model.Video.PublishDate.ToString("dd.MM.yyyy")
-                @if (Model.Video.Channel != null)
-                {
-                    <span> · <a asp-page="/Channel" asp-route-seoId="@(Model.Video.Channel.SEOId ?? Model.Video.Channel.Id.ToString())">@Model.Video.Channel.Title</a></span>
-                }
+                <partial name="Shared/_VideoMeta" model="Model.Video" />
             </div>
             <div class="video-description">@Html.Raw(Model.Video.Description.Replace("\n", "<br />"))</div>
         }
         else
         {
             <div class="text-muted small">
-                @Model.Video.PublishDate.ToString("dd.MM.yyyy")
-                @if (Model.Video.Channel != null)
-                {
-                    <span> · <a asp-page="/Channel" asp-route-seoId="@(Model.Video.Channel.SEOId ?? Model.Video.Channel.Id.ToString())">@Model.Video.Channel.Title</a></span>
-                }
+                <partial name="Shared/_VideoMeta" model="Model.Video" />
             </div>
         }
 

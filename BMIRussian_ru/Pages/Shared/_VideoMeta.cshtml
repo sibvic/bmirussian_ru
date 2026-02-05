@@ -1,0 +1,19 @@
+@model BMIRussian_ru.Data.Video
+@Model.PublishDate.ToString("dd.MM.yyyy")
+@if (Model.Channel != null)
+{
+    <span> · <a asp-page="/Channel" asp-route-seoId="@(Model.Channel.SEOId ?? Model.Channel.Id.ToString())">@Model.Channel.Title</a></span>
+}
+@if (Model.Tags?.Any() == true)
+{
+    <span> · 
+        @{
+            var tags = Model.Tags.OrderBy(t => t.TagText).ToList();
+        }
+        @for (var i = 0; i < tags.Count; i++)
+        {
+            if (i > 0) { <text>, </text> }
+            <a asp-page="/Tag" asp-route-tag="@tags[i].TagText">@tags[i].TagText</a>
+        }
+    </span>
+}

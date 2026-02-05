@@ -1,11 +1,11 @@
-@page
-@model BMIRussian_ru.Pages.VideosModel
+@page "/Tag/{tag}"
+@model BMIRussian_ru.Pages.TagModel
 @{
-    ViewData["Title"] = "Все видео";
+    ViewData["Title"] = "Видео по тегу: " + Model.TagName;
 }
 
 <div class="mt-3">
-    <h1 class="h4 mb-4">Все видео</h1>
+    <h1 class="h4 mb-4">Видео по тегу: @Model.TagName</h1>
 
     @if (Model.Videos.Any())
     {
@@ -34,13 +34,13 @@
             <nav aria-label="Навигация по страницам" class="mt-3">
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
-                        <a class="page-link" asp-page="/Videos" asp-route-pageIndex="@(Model.PageIndex - 1)" aria-label="Назад">Назад</a>
+                        <a class="page-link" asp-page="/Tag" asp-route-tag="@Model.TagName" asp-route-pageIndex="@(Model.PageIndex - 1)" aria-label="Назад">Назад</a>
                     </li>
                     <li class="page-item disabled">
                         <span class="page-link">@Model.PageIndex из @Model.TotalPages</span>
                     </li>
                     <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
-                        <a class="page-link" asp-page="/Videos" asp-route-pageIndex="@(Model.PageIndex + 1)" aria-label="Вперёд">Вперёд</a>
+                        <a class="page-link" asp-page="/Tag" asp-route-tag="@Model.TagName" asp-route-pageIndex="@(Model.PageIndex + 1)" aria-label="Вперёд">Вперёд</a>
                     </li>
                 </ul>
             </nav>
@@ -48,6 +48,6 @@
     }
     else
     {
-        <p class="text-muted">Пока нет опубликованных видео.</p>
+        <p class="text-muted">Нет видео с тегом «@Model.TagName».</p>
     }
 </div>

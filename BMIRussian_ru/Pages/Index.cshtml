@@ -20,11 +20,7 @@
                 <div>
                     <a asp-page="/Video" asp-route-seoId="@(video.SEOId ?? video.Id.ToString())">@video.Title</a>
                     <div class="text-muted small">
-                        @video.PublishDate.ToString("dd.MM.yyyy")
-                        @if (video.Channel != null)
-                        {
-                            <span> · <a asp-page="/Channel" asp-route-seoId="@(video.Channel.SEOId ?? video.Channel.Id.ToString())">@video.Channel.Title</a></span>
-                        }
+                        <partial name="Shared/_VideoMeta" model="video" />
                     </div>
                 </div>
             </li>

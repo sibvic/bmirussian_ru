@@ -29,7 +29,7 @@ namespace BMIRussian_ru.Pages.Admin
             var rows = ParseTuples(Data);
             if (rows.Count == 0)
             {
-                ModelState.AddModelError(nameof(Data), "Не удалось распознать ни одной строки данных. Формат: ('SeoId', 'ChannelSeoId', '', 'ImageUrl', 'Date', N, 'Title', 'videoUrl', ...)");
+                ModelState.AddModelError(nameof(Data), "Не удалось распознать ни одной строки данных. Формат: ('SeoId', 'ChannelSeoId', 'Description', 'ImageUrl', 'Date', N, 'Title', 'videoUrl', ...)");
                 return Page();
             }
 
@@ -47,6 +47,7 @@ namespace BMIRussian_ru.Pages.Admin
 
                 var videoSeoId = values[0]?.Trim().Trim('\'') ?? "";
                 var channelSeoId = values[1]?.Trim().Trim('\'') ?? "";
+                var description = values[2]?.Trim().Trim('\'') ?? "";
                 var imageUrl = values[3]?.Trim().Trim('\'') ?? "";
                 var dateStr = values[4]?.Trim().Trim('\'') ?? "";
                 var title = values[6]?.Trim().Trim('\'') ?? "";
@@ -71,6 +72,7 @@ namespace BMIRussian_ru.Pages.Admin
                 {
                     Title = title,
                     SEOId = string.IsNullOrEmpty(videoSeoId) ? SeoIdHelper.FromTitle(title) : videoSeoId,
+                    Description = description,
                     ImageUrl = imageUrl,
                     PublishDate = DateTime.SpecifyKind(publishDate, DateTimeKind.Utc),
                     VideoUrls = videoUrl,

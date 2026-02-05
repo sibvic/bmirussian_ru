@@ -8,8 +8,8 @@
     <h1 class="h4 mb-4">Импорт видео</h1>
 
     <p class="text-muted small mb-3">
-        Формат: ('Video.SeoId', 'Channel.SeoId', '', 'ImageUrl', 'Date', ignore, 'Title', 'videoUrl', ...)<br />
-        Пример: ('TOYOTA-PROTIV-HONDA-...', 'BEST-MOTORING', '', 'http://...', '2017-03-12 00:00:00', 2, 'Toyota против Honda...', '//vk.com/...', ...)
+        Формат: ('Video.SeoId', 'Channel.SeoId', 'Description', 'ImageUrl', 'Date', ignore, 'Title', 'videoUrl', ...)<br />
+        Пример: ('TOYOTA-PROTIV-HONDA-...', 'BEST-MOTORING', 'Описание видео', 'http://...', '2017-03-12 00:00:00', 2, 'Toyota против Honda...', '//vk.com/...', ...)
     </p>
 
     <form method="post">
@@ -22,7 +22,7 @@
 
         <div class="mb-3">
             <label asp-for="Data" class="form-label">Данные</label>
-            <textarea asp-for="Data" class="form-control font-monospace" rows="12" placeholder="('SEO-ID', 'CHANNEL-SEO-ID', '', 'http://...', '2017-03-12 00:00:00', 2, 'Название', '//vk.com/...', ...)"></textarea>
+            <textarea asp-for="Data" class="form-control font-monospace" rows="12" placeholder="('SEO-ID', 'CHANNEL-SEO-ID', 'Описание', 'http://...', '2017-03-12 00:00:00', 2, 'Название', '//vk.com/...', ...)"></textarea>
             <span asp-validation-for="Data" class="text-danger"></span>
         </div>
 

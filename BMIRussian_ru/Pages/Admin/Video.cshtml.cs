@@ -23,10 +23,11 @@ namespace BMIRussian_ru.Pages.Admin
         public bool HasPreviousPage => PageIndex > 1;
         public bool HasNextPage => PageIndex < TotalPages;
         public VideoStatus? StatusFilter { get; set; }
+        public string? TitleFilter { get; set; }
 
         private const string StatusFilterKey = "Admin.Video.StatusFilter";
 
-        public async Task OnGetAsync(int pageIndex = 1, VideoStatus? statusFilter = null, bool clearFilter = false)
+        public async Task OnGetAsync(int pageIndex = 1, VideoStatus? statusFilter = null, string? titleFilter = null, bool clearFilter = false)
         {
             PageIndex = Math.Max(1, pageIndex);
 
@@ -34,21 +35,26 @@ namespace BMIRussian_ru.Pages.Admin
             {
                 Response.Cookies.Delete(StatusFilterKey, new CookieOptions { Path = "/" });
                 StatusFilter = null;
-            }
-            else if (Request.Query.ContainsKey("statusFilter"))
-            {
-                StatusFilter = statusFilter;
-                if (statusFilter.HasValue)
-                    Response.Cookies.Append(StatusFilterKey, ((int)statusFilter.Value).ToString(), new CookieOptions { Path = "/", MaxAge = TimeSpan.FromDays(30) });
-                else
-                    Response.Cookies.Delete(StatusFilterKey, new CookieOptions { Path = "/" });
+                TitleFilter = null;
             }
             else
             {
-                if (Request.Cookies.TryGetValue(StatusFilterKey, out var cookieVal) && int.TryParse(cookieVal, out var saved) && Enum.IsDefined(typeof(VideoStatus), saved))
-                    StatusFilter = (VideoStatus)saved;
+                TitleFilter = titleFilter;
+                if (Request.Query.ContainsKey("statusFilter"))
+                {
+                    StatusFilter = statusFilter;
+                    if (statusFilter.HasValue)
+                        Response.Cookies.Append(StatusFilterKey, ((int)statusFilter.Value).ToString(), new CookieOptions { Path = "/", MaxAge = TimeSpan.FromDays(30) });
+                    else
+                        Response.Cookies.Delete(StatusFilterKey, new CookieOptions { Path = "/" });
+                }
                 else
-                    StatusFilter = null;
+                {
+                    if (Request.Cookies.TryGetValue(StatusFilterKey, out var cookieVal) && int.TryParse(cookieVal, out var saved) && Enum.IsDefined(typeof(VideoStatus), saved))
+                        StatusFilter = (VideoStatus)saved;
+                    else
+                        StatusFilter = null;
+                }
             }
 
             IQueryable<Video> query = _context.Videos
@@ -56,6 +62,12 @@ namespace BMIRussian_ru.Pages.Admin
 
             if (StatusFilter.HasValue)
                 query = query.Where(v => v.Status == StatusFilter.Value);
+
+            if (!string.IsNullOrWhiteSpace(TitleFilter))
+            {
+                var titleLower = TitleFilter.Trim().ToLower();
+                query = query.Where(v => v.Title != null && v.Title.ToLower().Contains(titleLower));
+            }
 
             TotalCount = await query.CountAsync();
 

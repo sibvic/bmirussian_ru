@@ -27,9 +27,10 @@ namespace BMIRussian_ru.Pages
             if (string.IsNullOrEmpty(seoId))
                 return NotFound();
 
+            var seoIdLower = seoId.ToLowerInvariant();
             var video = await _context.Videos
                 .Include(v => v.Tags)
-                .FirstOrDefaultAsync(v => v.SEOId != null && v.SEOId.Equals(seoId, StringComparison.OrdinalIgnoreCase) && v.Status == VideoStatus.Published)
+                .FirstOrDefaultAsync(v => v.SEOId != null && v.SEOId.ToLower() == seoIdLower && v.Status == VideoStatus.Published)
                 ?? (long.TryParse(seoId, out var id) ? await _context.Videos.Include(v => v.Tags).FirstOrDefaultAsync(v => v.Id == id && v.Status == VideoStatus.Published) : null);
 
             if (video == null)

@@ -1,5 +1,6 @@
 @page "/Video/{seoId}"
 @model BMIRussian_ru.Pages.VideoModel
+@using Markdig
 @{
     ViewData["Title"] = Model.Video?.Title ?? "Видео";
 }
@@ -27,7 +28,7 @@
             <div class="text-muted small mb-2">
                 <partial name="Shared/_VideoMeta" model="Model.Video" />
             </div>
-            <div class="video-description">@Html.Raw(Model.Video.Description.Replace("\n", "<br />"))</div>
+            <div class="video-description">@Html.Raw(Markdown.ToHtml(Model.Video.Description ?? ""))</div>
         }
         else
         {

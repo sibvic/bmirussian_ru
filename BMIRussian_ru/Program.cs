@@ -27,6 +27,11 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.Configure<KafkaMessageSenderOptions>(
     builder.Configuration.GetSection("KafkaMessageSender"));
 builder.Services.AddSingleton<KafkaMessageSender>();
+builder.Services.Configure<DownloaderKafkaOptions>(
+    builder.Configuration.GetSection("DownloaderKafka"));
+builder.Services.AddSingleton<MediaInfoResultStore>();
+builder.Services.AddSingleton<IMediaInfoKafkaService, MediaInfoKafkaService>();
+builder.Services.AddHostedService<MediaInfoResultConsumerService>();
 builder.Services.AddSingleton<MetricsService>();
 builder.Services.AddHostedService<LoginService>();
 

@@ -11,7 +11,7 @@ using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
-    public class ImportVideoModel(ApplicationDbContext context) : PageModel
+    public class ImportVideoModel(ApplicationDbContext context, IMediaInfoKafkaService mediaInfoKafkaService) : PageModel
     {
         [BindProperty]
         [Display(Name = "Данные")]
@@ -120,7 +120,7 @@ namespace BMIRussian_ru.Pages.Admin
                 VideoMetadata? meta;
                 try
                 {
-                    meta = await GetVideoMetadataViaYtDlpAsync(url);
+                    meta = await GetVideoMetadataAsync(url);
                 }
                 catch (Exception ex)
                 {
@@ -128,6 +128,11 @@ namespace BMIRussian_ru.Pages.Admin
                     continue;
                 }
 
+                if (meta == null)
+                {
+                    errors.Add($"{url}: не удалось получить метаданные.");
+                    continue;
+                }
                 if (string.IsNullOrWhiteSpace(meta.Title))
                 {
                     errors.Add($"Не удалось получить название: {url}");
@@ -183,6 +188,27 @@ namespace BMIRussian_ru.Pages.Admin
             $"https://i.ytimg.com/vi/{videoId}/maxresdefault.jpg";
 
         private sealed record VideoMetadata(string? Title, string? Thumbnail, string? Description, DateTime PublishDate);
+
+        /// <summary>
+        /// Gets video metadata via Kafka MediaInfo message when configured; otherwise via local yt-dlp.
+        /// </summary>
+        private async Task<VideoMetadata?> GetVideoMetadataAsync(string url)
+        {
+            var kafkaResult = await mediaInfoKafkaService.GetVideoMetadataAsync(url);
+            if (kafkaResult != null)
+            {
+                if (!kafkaResult.IsSuccess)
+                {
+                    throw new InvalidOperationException(kafkaResult.Error ?? "Unknown error");
+                }
+                return new VideoMetadata(
+                    kafkaResult.Title,
+                    kafkaResult.Thumbnail,
+                    kafkaResult.Description,
+                    kafkaResult.PublishDate);
+            }
+            return await GetVideoMetadataViaYtDlpAsync(url);
+        }
 
         private static async Task<VideoMetadata> GetVideoMetadataViaYtDlpAsync(string url)
         {

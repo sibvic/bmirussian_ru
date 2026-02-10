@@ -8,11 +8,11 @@
     <h1 class="h4 mb-4">Импорт видео</h1>
 
     <p class="text-muted small mb-3">
-        Формат: ('Video.SeoId', 'Channel.SeoId', 'Description', 'ImageUrl', 'Date', ignore, 'Title', 'videoUrl', ...)<br />
-        Пример: ('TOYOTA-PROTIV-HONDA-...', 'BEST-MOTORING', 'Описание видео', 'http://...', '2017-03-12 00:00:00', 2, 'Toyota против Honda...', '//vk.com/...', ...)
+        <strong>Импорт по URL:</strong> вставьте ссылки на YouTube или VK (по одной на строку). Название и превью подставляются через yt-dlp.<br />
+        <strong>Импорт кортежами:</strong> формат ('Video.SeoId', 'Channel.SeoId', 'Description', 'ImageUrl', 'Date', ignore, 'Title', 'videoUrl', ...)
     </p>
 
-    <form method="post">
+    <form method="post" id="import-form">
         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
         @if (!string.IsNullOrEmpty(Model.Message))
@@ -22,13 +22,20 @@
 
         <div class="mb-3">
             <label asp-for="Data" class="form-label">Данные</label>
-            <textarea asp-for="Data" class="form-control font-monospace" rows="12" placeholder="('SEO-ID', 'CHANNEL-SEO-ID', 'Описание', 'http://...', '2017-03-12 00:00:00', 2, 'Название', '//vk.com/...', ...)"></textarea>
+            <textarea asp-for="Data" class="form-control font-monospace" rows="8" placeholder="('SEO-ID', 'CHANNEL-SEO-ID', 'Описание', 'http://...', '2017-03-12 00:00:00', 2, 'Название', '//vk.com/...', ...)"></textarea>
             <span asp-validation-for="Data" class="text-danger"></span>
         </div>
 
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Импортировать</button>
+            <button type="submit" class="btn btn-primary" id="import-btn">Импортировать</button>
             <a asp-page="/Admin/Video" class="btn btn-outline-secondary">Отмена</a>
         </div>
     </form>
+    <script>
+        document.getElementById('import-form').addEventListener('submit', function () {
+            var btn = document.getElementById('import-btn');
+            btn.disabled = true;
+            btn.textContent = 'Импорт…';
+        });
+    </script>
 </div>

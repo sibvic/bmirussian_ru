@@ -1,4 +1,5 @@
 using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -30,6 +31,8 @@ public class MediaInfoResultConsumerService : BackgroundService
             _logger.LogInformation("Downloader Kafka result topic not configured; MediaInfo result consumer disabled");
             return;
         }
+
+        await EnsureTopicExistsAsync(stoppingToken);
 
         var config = new ConsumerConfig
         {
@@ -107,6 +110,42 @@ public class MediaInfoResultConsumerService : BackgroundService
         finally
         {
             consumer.Close();
+        }
+    }
+
+    private async Task EnsureTopicExistsAsync(CancellationToken cancellationToken)
+    {
+        var config = new AdminClientConfig
+        {
+            BootstrapServers = _options.BootstrapServers,
+        };
+        if (!string.IsNullOrWhiteSpace(_options.Username))
+        {
+            config.SaslMechanism = SaslMechanism.Plain;
+            config.SecurityProtocol = SecurityProtocol.SaslPlaintext;
+            config.SaslUsername = _options.Username;
+            config.SaslPassword = _options.Password;
+        }
+
+        using var admin = new AdminClientBuilder(config).Build();
+        try
+        {
+            await admin.CreateTopicsAsync(
+                new[] { new TopicSpecification { Name = _options.ResultTopic, NumPartitions = 1, ReplicationFactor = 1 } },
+                new CreateTopicsOptions { RequestTimeout = TimeSpan.FromSeconds(30) });
+            _logger.LogInformation("Created Kafka topic {Topic} for MediaInfo results", _options.ResultTopic);
+        }
+        catch (CreateTopicsException ex) when (ex.Results.Count > 0)
+        {
+            var result = ex.Results[0];
+            if (result.Error.Code == ErrorCode.TopicAlreadyExists)
+                _logger.LogDebug("Kafka topic {Topic} already exists", _options.ResultTopic);
+            else
+                _logger.LogWarning(ex, "Could not ensure topic {Topic} exists: {Reason}", _options.ResultTopic, result.Error.Reason);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not ensure topic {Topic} exists; consumer may fail if topic is not created", _options.ResultTopic);
         }
     }
 

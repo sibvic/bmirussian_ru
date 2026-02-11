@@ -7,28 +7,13 @@ using Sibvic.AuthLib.Exceptions;
 
 namespace BMIRussian_ru.Pages
 {
-    public class LoginTelegramBotModel : PageModel
+    public class LoginTelegramBotModel(
+        IHttpClientFactory httpClientFactory,
+        ILogger<LoginTelegramBotModel> logger,
+        AuthLogic authLogic,
+        ApplicationDbContext context,
+        IConfiguration configuration) : PageModel
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger<LoginTelegramBotModel> _logger;
-        private readonly AuthLogic _authLogic;
-        private readonly ApplicationDbContext _context;
-        private readonly IConfiguration _configuration;
-
-        public LoginTelegramBotModel(
-            IHttpClientFactory httpClientFactory, 
-            ILogger<LoginTelegramBotModel> logger,
-            AuthLogic authLogic,
-            ApplicationDbContext context,
-            IConfiguration configuration)
-        {
-            _httpClientFactory = httpClientFactory;
-            _logger = logger;
-            _authLogic = authLogic;
-            _context = context;
-            _configuration = configuration;
-        }
-
         public string? ErrorMessage { get; set; }
         public List<AgreementViewModel>? UnacceptedAgreements { get; set; }
         public string? TemporaryToken { get; set; }
@@ -52,7 +37,7 @@ namespace BMIRussian_ru.Pages
             try
             {
                 // Find user by telegram ID
-                var user = _authLogic.FindUser(telegramid, CredentialsSource.Telegram);
+                var user = authLogic.FindUser(telegramid, CredentialsSource.Telegram);
                 if (user == null)
                 {
                     ErrorMessage = "Пользователь не найден";
@@ -63,7 +48,7 @@ namespace BMIRussian_ru.Pages
                 // If it throws AgreementsNotAcceptedException, token is valid but agreements need acceptance
                 try
                 {
-                    var jwtToken = _authLogic.AuthenticateFromTelegramBot(telegramid, token);
+                    var jwtToken = authLogic.AuthenticateFromTelegramBot(telegramid, token);
                     SetJwtCookie(jwtToken);
                     return RedirectToPage("/Index");
                 }
@@ -71,7 +56,7 @@ namespace BMIRussian_ru.Pages
                 {
                     // Token is valid, but agreements need to be accepted
                     // Get agreements that need to be signed
-                    var agreementsToSign = _authLogic.GetAgreementsToSign(user);
+                    var agreementsToSign = authLogic.GetAgreementsToSign(user);
                     
                     if (agreementsToSign != null && agreementsToSign.Any())
                     {
@@ -109,7 +94,7 @@ namespace BMIRussian_ru.Pages
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during Telegram bot login");
+                logger.LogError(ex, "Error during Telegram bot login");
                 ErrorMessage = "Произошла ошибка при попытке входа. Пожалуйста, попробуйте позже.";
             }
 
@@ -130,7 +115,7 @@ namespace BMIRussian_ru.Pages
             };
 
             // Set domain from configuration if specified
-            var cookieDomain = _configuration["CookieDomain"];
+            var cookieDomain = configuration["CookieDomain"];
             if (!string.IsNullOrWhiteSpace(cookieDomain))
             {
                 cookieOptions.Domain = cookieDomain;
@@ -153,7 +138,7 @@ namespace BMIRussian_ru.Pages
             try
             {
                 // Find user by telegram ID
-                var user = _authLogic.FindUser(telegramid, CredentialsSource.Telegram);
+                var user = authLogic.FindUser(telegramid, CredentialsSource.Telegram);
                 if (user == null)
                 {
                     ErrorMessage = "Пользователь не найден";
@@ -161,14 +146,14 @@ namespace BMIRussian_ru.Pages
                 }
 
                 // Get agreements that need to be signed
-                var agreementsToSign = _authLogic.GetAgreementsToSign(user);
+                var agreementsToSign = authLogic.GetAgreementsToSign(user);
                 
                 if (agreementsToSign == null || !agreementsToSign.Any())
                 {
                     // All agreements are already accepted, try to authenticate
                     try
                     {
-                        var jwtToken = _authLogic.AuthenticateFromTelegramBot(telegramid, token);
+                        var jwtToken = authLogic.AuthenticateFromTelegramBot(telegramid, token);
                         SetJwtCookie(jwtToken);
                         return RedirectToPage("/Index");
                     }
@@ -206,14 +191,14 @@ namespace BMIRussian_ru.Pages
                     var agreement = agreementsToSign.FirstOrDefault(a => a.Id == agreementId);
                     if (agreement != null)
                     {
-                        _authLogic.AcceptAgreement(user, agreement);
+                        authLogic.AcceptAgreement(user, agreement);
                     }
                 }
 
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
 
                 // Check again if all agreements are now accepted
-                var remainingAgreements = _authLogic.GetAgreementsToSign(user);
+                var remainingAgreements = authLogic.GetAgreementsToSign(user);
                 if (remainingAgreements != null && remainingAgreements.Any())
                 {
                     ErrorMessage = "Ошибка при принятии соглашений";
@@ -229,7 +214,7 @@ namespace BMIRussian_ru.Pages
                 // All agreements accepted, generate token through AuthLogic.GenerateToken
                 try
                 {
-                    var jwtToken = _authLogic.GenerateToken(user);
+                    var jwtToken = authLogic.GenerateToken(user);
                     SetJwtCookie(jwtToken);
                     return RedirectToPage("/Index");
                 }
@@ -247,7 +232,7 @@ namespace BMIRussian_ru.Pages
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during agreement acceptance");
+                logger.LogError(ex, "Error during agreement acceptance");
                 ErrorMessage = "Произошла ошибка при принятии соглашений. Пожалуйста, попробуйте позже.";
             }
 

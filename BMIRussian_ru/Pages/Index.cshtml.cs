@@ -5,22 +5,13 @@ using BMIRussian_ru.Data;
 
 namespace BMIRussian_ru.Pages
 {
-    public class IndexModel : PageModel
+    public class IndexModel(ILogger<IndexModel> logger, ApplicationDbContext context) : PageModel
     {
-        private readonly ILogger<IndexModel> _logger;
-        private readonly ApplicationDbContext _context;
-
-        public IndexModel(ILogger<IndexModel> logger, ApplicationDbContext context)
-        {
-            _logger = logger;
-            _context = context;
-        }
-
         public IList<Video> LatestVideos { get; set; } = new List<Video>();
 
         public async Task OnGetAsync()
         {
-            LatestVideos = await _context.Videos
+            LatestVideos = await context.Videos
                 .Include(v => v.Tags)
                 .Where(v => v.Status == VideoStatus.Published)
                 .OrderByDescending(v => v.PublishDate)

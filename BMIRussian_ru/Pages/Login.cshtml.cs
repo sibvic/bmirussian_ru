@@ -3,14 +3,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace BMIRussian_ru.Pages
 {
-    public class LoginModel : PageModel
+    public class LoginModel(IConfiguration configuration) : PageModel
     {
-        private readonly IConfiguration _configuration;
-
-        public LoginModel(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
 
         /// <summary>
         /// Optional URL to the Telegram bot for login (e.g. https://t.me/YourLoginBot).
@@ -20,7 +14,7 @@ namespace BMIRussian_ru.Pages
 
         public IActionResult OnGet()
         {
-            TelegramBotUrl = _configuration["TelegramBot:LoginBotUrl"];
+            TelegramBotUrl = configuration["TelegramBot:LoginBotUrl"];
             return Page();
         }
     }

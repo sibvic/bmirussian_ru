@@ -6,17 +6,8 @@ using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
-    public class VideoModel : PageModel
+    public class VideoModel(ApplicationDbContext context, IMeilisearchService meilisearch) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IMeilisearchService _meilisearch;
-
-        public VideoModel(ApplicationDbContext context, IMeilisearchService meilisearch)
-        {
-            _context = context;
-            _meilisearch = meilisearch;
-        }
-
         public const int PageSize = 20;
 
         public IList<Video> Videos { get; set; } = new List<Video>();
@@ -63,7 +54,7 @@ namespace BMIRussian_ru.Pages.Admin
                 NoDescriptionFilter = noDescriptionFilter;
             }
 
-            IQueryable<Video> query = _context.Videos
+            IQueryable<Video> query = context.Videos
                 .OrderByDescending(v => v.PublishDate);
 
             if (StatusFilter.HasValue)
@@ -88,20 +79,20 @@ namespace BMIRussian_ru.Pages.Admin
 
         public async Task<IActionResult> OnPostDeleteAsync(long id)
         {
-            var video = await _context.Videos.FindAsync(id);
+            var video = await context.Videos.FindAsync(id);
             if (video != null)
             {
-                _context.Videos.Remove(video);
-                await _context.SaveChangesAsync();
-                await _meilisearch.DeleteVideoAsync(id);
+                context.Videos.Remove(video);
+                await context.SaveChangesAsync();
+                await meilisearch.DeleteVideoAsync(id);
             }
             return RedirectToPage();
         }
 
         public async Task<IActionResult> OnPostIndexAllAsync()
         {
-            var videos = await _context.Videos.Where(v => v.Status == VideoStatus.Published).ToListAsync();
-            await _meilisearch.IndexVideosAsync(videos);
+            var videos = await context.Videos.Where(v => v.Status == VideoStatus.Published).ToListAsync();
+            await meilisearch.IndexVideosAsync(videos);
             TempData["IndexAllMessage"] = $"Проиндексировано видео: {videos.Count}.";
             return RedirectToPage();
         }

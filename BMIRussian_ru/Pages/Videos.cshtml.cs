@@ -5,17 +5,8 @@ using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages
 {
-    public class VideosModel : PageModel
+    public class VideosModel(ApplicationDbContext context, IMeilisearchService meilisearch) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IMeilisearchService _meilisearch;
-
-        public VideosModel(ApplicationDbContext context, IMeilisearchService meilisearch)
-        {
-            _context = context;
-            _meilisearch = meilisearch;
-        }
-
         public const int PageSize = 15;
 
         public IList<Video> Videos { get; set; } = new List<Video>();
@@ -33,13 +24,13 @@ namespace BMIRussian_ru.Pages
 
             if (!string.IsNullOrWhiteSpace(SearchQuery))
             {
-                var searchResult = await _meilisearch.SearchVideosAsync(SearchQuery, PageSize, (PageIndex - 1) * PageSize);
+                var searchResult = await meilisearch.SearchVideosAsync(SearchQuery, PageSize, (PageIndex - 1) * PageSize);
                 TotalCount = searchResult.EstimatedTotalHits;
 
                 if (searchResult.VideoIds.Count > 0)
                 {
                     var ids = searchResult.VideoIds.ToList();
-                    var videosById = await _context.Videos
+                    var videosById = await context.Videos
                         .Include(v => v.Tags)
                         .Where(v => ids.Contains(v.Id) && v.Status == VideoStatus.Published)
                         .ToDictionaryAsync(v => v.Id);
@@ -52,7 +43,7 @@ namespace BMIRussian_ru.Pages
             }
             else
             {
-                var query = _context.Videos
+                var query = context.Videos
                     .Include(v => v.Tags)
                     .Where(v => v.Status == VideoStatus.Published)
                     .OrderByDescending(v => v.PublishDate);

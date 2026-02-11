@@ -5,15 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BMIRussian_ru.Pages
 {
-    public class TagModel : PageModel
+    public class TagModel(ApplicationDbContext context) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-
-        public TagModel(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         public const int PageSize = 15;
 
         /// <summary>Normalized tag (lowercase) used for the query.</summary>
@@ -34,7 +27,7 @@ namespace BMIRussian_ru.Pages
             TagName = tag.Trim().ToLowerInvariant();
             PageIndex = Math.Max(1, pageIndex);
 
-            var query = _context.Videos
+            var query = context.Videos
                 .Include(v => v.Tags)
                 .Where(v => v.Status == VideoStatus.Published && v.Tags.Any(t => t.TagText == TagName))
                 .OrderByDescending(v => v.PublishDate);

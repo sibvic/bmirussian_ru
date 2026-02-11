@@ -12,23 +12,10 @@
 @if (Model.LatestVideos.Any())
 {
     <h4><a asp-page="/Videos" class="text-decoration-none text-dark">Последние видео</a></h4>
-    <ul class="list-unstyled">
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
         @foreach (var video in Model.LatestVideos)
         {
-            <li class="mb-3 d-flex gap-2 align-items-start">
-                @if (!string.IsNullOrEmpty(video.ImageUrl))
-                {
-                    <a asp-page="/Video" asp-route-seoId="@(video.SEOId ?? video.Id.ToString())" class="flex-shrink-0">
-                        <img src="@video.ImageUrl" alt="" width="120" height="68" class="rounded" />
-                    </a>
-                }
-                <div>
-                    <a asp-page="/Video" asp-route-seoId="@(video.SEOId ?? video.Id.ToString())">@video.Title</a>
-                    <div class="text-muted small">
-                        <partial name="Shared/_VideoMeta" model="video" />
-                    </div>
-                </div>
-            </li>
+            <partial name="Shared/_VideoCard" model="video" />
         }
-    </ul>
+    </div>
 }

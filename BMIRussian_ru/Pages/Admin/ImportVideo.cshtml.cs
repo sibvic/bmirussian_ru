@@ -27,8 +27,11 @@ namespace BMIRussian_ru.Pages.Admin
             // Import by URL (YouTube / VK): one URL per line
             var (imported, errors) = await ImportByUrlsAsync(Data);
             await context.SaveChangesAsync();
-            if (imported > 0 && errors.Count == 0)
-                return RedirectToPage("/Admin/Video");
+            if (imported > 0)
+            {
+                if (errors.Count == 0)
+                    return RedirectToPage("/Admin/Video");
+            }
 
             ModelState.AddModelError(nameof(Data), "Введите данные для импорта или URL-ы видео.");
             return Page();

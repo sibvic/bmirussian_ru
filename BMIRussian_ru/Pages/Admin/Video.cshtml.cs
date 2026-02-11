@@ -2,18 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BMIRussian_ru.Data;
+using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
-    public class VideoModel : PageModel
+    public class VideoModel(ApplicationDbContext context, IMeilisearchService meilisearch) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-
-        public VideoModel(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         public const int PageSize = 20;
 
         public IList<Video> Videos { get; set; } = new List<Video>();
@@ -60,7 +54,7 @@ namespace BMIRussian_ru.Pages.Admin
                 NoDescriptionFilter = noDescriptionFilter;
             }
 
-            IQueryable<Video> query = _context.Videos
+            IQueryable<Video> query = context.Videos
                 .OrderByDescending(v => v.PublishDate);
 
             if (StatusFilter.HasValue)
@@ -85,12 +79,21 @@ namespace BMIRussian_ru.Pages.Admin
 
         public async Task<IActionResult> OnPostDeleteAsync(long id)
         {
-            var video = await _context.Videos.FindAsync(id);
+            var video = await context.Videos.FindAsync(id);
             if (video != null)
             {
-                _context.Videos.Remove(video);
-                await _context.SaveChangesAsync();
+                context.Videos.Remove(video);
+                await context.SaveChangesAsync();
+                await meilisearch.DeleteVideoAsync(id);
             }
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostIndexAllAsync()
+        {
+            var videos = await context.Videos.Where(v => v.Status == VideoStatus.Published).ToListAsync();
+            await meilisearch.IndexVideosAsync(videos);
+            TempData["IndexAllMessage"] = $"Проиндексировано видео: {videos.Count}.";
             return RedirectToPage();
         }
     }

@@ -7,15 +7,8 @@ using Sibvic.AuthLib;
 
 namespace BMIRussian_ru.Pages
 {
-    public class VideoModel : PageModel
+    public class VideoModel(ApplicationDbContext context) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-
-        public VideoModel(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         public Video? Video { get; set; }
 
         /// <summary>First video URL from VideoUrls (for "watch" link when not embeddable).</summary>
@@ -32,10 +25,10 @@ namespace BMIRussian_ru.Pages
                 return NotFound();
 
             var seoIdLower = seoId.ToLowerInvariant();
-            var video = await _context.Videos
+            var video = await context.Videos
                 .Include(v => v.Tags)
                 .FirstOrDefaultAsync(v => v.SEOId != null && v.SEOId.ToLower() == seoIdLower && v.Status == VideoStatus.Published)
-                ?? (long.TryParse(seoId, out var id) ? await _context.Videos.Include(v => v.Tags).FirstOrDefaultAsync(v => v.Id == id && v.Status == VideoStatus.Published) : null);
+                ?? (long.TryParse(seoId, out var id) ? await context.Videos.Include(v => v.Tags).FirstOrDefaultAsync(v => v.Id == id && v.Status == VideoStatus.Published) : null);
 
             if (video == null)
                 return NotFound();
@@ -74,7 +67,7 @@ namespace BMIRussian_ru.Pages
                 var userIdClaim = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
                     ?? HttpContext.User.FindFirstValue("id");
                 if (!string.IsNullOrEmpty(userIdClaim) && long.TryParse(userIdClaim, out var userId))
-                    IsAdmin = await _context.Set<UserRoles>().AnyAsync(r => r.UserId == userId && r.Role == "Admin");
+                    IsAdmin = await context.Set<UserRoles>().AnyAsync(r => r.UserId == userId && r.Role == "Admin");
             }
 
             return Page();

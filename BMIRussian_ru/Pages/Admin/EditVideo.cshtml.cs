@@ -8,15 +8,8 @@ using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
-    public class EditVideoModel : PageModel
+    public class EditVideoModel(ApplicationDbContext context, IMeilisearchService meilisearch) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-
-        public EditVideoModel(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         [BindProperty]
         public EditVideoInput Input { get; set; } = new();
 
@@ -24,7 +17,7 @@ namespace BMIRussian_ru.Pages.Admin
 
         public async Task<IActionResult> OnGetAsync(long id)
         {
-            var video = await _context.Videos
+            var video = await context.Videos
                 .Include(v => v.Tags)
                 .FirstOrDefaultAsync(v => v.Id == id);
             if (video == null)
@@ -51,7 +44,7 @@ namespace BMIRussian_ru.Pages.Admin
 
         public async Task<IActionResult> OnPostAsync(long id)
         {
-            var video = await _context.Videos.FindAsync(id);
+            var video = await context.Videos.FindAsync(id);
             if (video == null)
                 return NotFound();
 
@@ -77,18 +70,22 @@ namespace BMIRussian_ru.Pages.Admin
                 .Distinct()
                 .ToHashSet();
 
-            var existingTags = await _context.Tags.Where(t => t.VideoId == id).ToListAsync();
+            var existingTags = await context.Tags.Where(t => t.VideoId == id).ToListAsync();
             var toRemove = existingTags.Where(t => !newTagSet.Contains(t.TagText)).ToList();
             var existingTexts = existingTags.Select(t => t.TagText).ToHashSet();
             var toAdd = newTagSet.Where(t => !existingTexts.Contains(t)).ToList();
 
-            _context.Tags.RemoveRange(toRemove);
+            context.Tags.RemoveRange(toRemove);
             foreach (var tagText in toAdd)
             {
-                _context.Tags.Add(new Tag { VideoId = id, TagText = tagText });
+                context.Tags.Add(new Tag { VideoId = id, TagText = tagText });
             }
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
+            if (video.Status == VideoStatus.Published)
+                await meilisearch.IndexVideoAsync(video);
+            else
+                await meilisearch.DeleteVideoAsync(video.Id);
             return RedirectToPage("/Admin/Video");
         }
     }

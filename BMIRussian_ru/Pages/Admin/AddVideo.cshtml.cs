@@ -7,7 +7,7 @@ using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
-    public class AddVideoModel(ApplicationDbContext context) : PageModel
+    public class AddVideoModel(ApplicationDbContext context, IMeilisearchService meilisearch) : PageModel
     {
         [BindProperty]
         public EditVideoInput Input { get; set; } = new();
@@ -51,6 +51,9 @@ namespace BMIRussian_ru.Pages.Admin
             }
             if (tagTexts.Any())
                 await context.SaveChangesAsync();
+
+            if (video.Status == VideoStatus.Published)
+                await meilisearch.IndexVideoAsync(video);
 
             return RedirectToPage("/Admin/Video");
         }

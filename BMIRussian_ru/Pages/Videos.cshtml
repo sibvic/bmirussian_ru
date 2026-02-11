@@ -7,40 +7,32 @@
 <div class="mt-3">
     <h1 class="h4 mb-4">Все видео</h1>
 
+    <form method="get" asp-page="/Videos" class="mb-4 d-flex gap-2">
+        <input type="search" name="q" class="form-control" placeholder="Поиск видео..." value="@(Model.SearchQuery ?? "")" />
+        <button type="submit" class="btn btn-primary">Искать</button>
+    </form>
+
     @if (Model.Videos.Any())
     {
-        <ul class="list-unstyled">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
             @foreach (var video in Model.Videos)
             {
-                <li class="mb-3 d-flex gap-2 align-items-start">
-                    @if (!string.IsNullOrEmpty(video.ImageUrl))
-                    {
-                        <a asp-page="/Video" asp-route-seoId="@(video.SEOId ?? video.Id.ToString())" class="flex-shrink-0">
-                            <img src="@video.ImageUrl" alt="" width="120" height="68" class="rounded" />
-                        </a>
-                    }
-                    <div>
-                        <a asp-page="/Video" asp-route-seoId="@(video.SEOId ?? video.Id.ToString())">@video.Title</a>
-                        <div class="text-muted small">
-                            <partial name="Shared/_VideoMeta" model="video" />
-                        </div>
-                    </div>
-                </li>
+                <partial name="Shared/_VideoCard" model="video" />
             }
-        </ul>
+        </div>
 
         @if (Model.TotalPages > 1)
         {
             <nav aria-label="Навигация по страницам" class="mt-3">
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
-                        <a class="page-link" asp-page="/Videos" asp-route-pageIndex="@(Model.PageIndex - 1)" aria-label="Назад">Назад</a>
+                        <a class="page-link" asp-page="/Videos" asp-route-pageIndex="@(Model.PageIndex - 1)" asp-route-q="@Model.SearchQuery" aria-label="Назад">Назад</a>
                     </li>
                     <li class="page-item disabled">
                         <span class="page-link">@Model.PageIndex из @Model.TotalPages</span>
                     </li>
                     <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
-                        <a class="page-link" asp-page="/Videos" asp-route-pageIndex="@(Model.PageIndex + 1)" aria-label="Вперёд">Вперёд</a>
+                        <a class="page-link" asp-page="/Videos" asp-route-pageIndex="@(Model.PageIndex + 1)" asp-route-q="@Model.SearchQuery" aria-label="Вперёд">Вперёд</a>
                     </li>
                 </ul>
             </nav>
@@ -48,6 +40,6 @@
     }
     else
     {
-        <p class="text-muted">Пока нет опубликованных видео.</p>
+        <p class="text-muted">@(string.IsNullOrWhiteSpace(Model.SearchQuery) ? "Пока нет опубликованных видео." : "По вашему запросу ничего не найдено.")</p>
     }
 </div>

@@ -1,0 +1,21 @@
+@model BMIRussian_ru.Data.Video
+<div class="col">
+    <div class="card">
+        <a asp-page="/Video" asp-route-seoId="@(Model.SEOId ?? Model.Id.ToString())" class="video-card text-decoration-none text-dark h-100 overflow-hidden">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" alt="" class="card-img-top video-thumbnail" loading="lazy" />
+            }
+            else
+            {
+                <div class="card-img-top video-thumbnail-placeholder bg-dark d-flex align-items-center justify-content-center text-muted small">Нет превью</div>
+            }
+            <div class="card-body py-2">
+                <h6 class="card-title video-title">@Model.Title</h6>
+                <p class="card-text text-muted small mb-0">
+                    <partial name="Shared/_VideoMeta" model="Model" />
+                </p>
+            </div>
+        </a>
+    </div>
+</div>

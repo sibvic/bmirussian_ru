@@ -4,6 +4,11 @@
     ViewData["Title"] = "BMIRussian. Автокультура и автоспорт на русском!";
 }
 
+<form method="get" asp-page="/Videos" class="mb-4 d-flex gap-2">
+    <input type="search" name="q" class="form-control" placeholder="Поиск видео..." />
+    <button type="submit" class="btn btn-primary">Искать</button>
+</form>
+
 @if (Model.LatestVideos.Any())
 {
     <h4><a asp-page="/Videos" class="text-decoration-none text-dark">Последние видео</a></h4>

@@ -18,4 +18,11 @@ public interface IMeilisearchService
     /// Remove a video from the Meilisearch index.
     /// </summary>
     Task DeleteVideoAsync(long videoId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Search videos by query. Returns video IDs matching the search.
+    /// </summary>
+    Task<VideoSearchResult> SearchVideosAsync(string query, int limit = 50, int offset = 0, CancellationToken cancellationToken = default);
 }
+
+public record VideoSearchResult(IReadOnlyList<long> VideoIds, int EstimatedTotalHits);

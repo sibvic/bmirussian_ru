@@ -80,6 +80,33 @@ public class MeilisearchService : IMeilisearchService
         }
     }
 
+    public async Task<VideoSearchResult> SearchVideosAsync(string query, int limit = 20, int offset = 0, CancellationToken cancellationToken = default)
+    {
+        if (_client == null || string.IsNullOrWhiteSpace(query))
+            return new VideoSearchResult(Array.Empty<long>(), 0);
+
+        try
+        {
+            var index = _client.Index(VideosIndexName);
+            var searchQuery = new SearchQuery { Limit = limit, Offset = offset };
+            var result = await index.SearchAsync<VideoSearchDocument>(query.Trim(), searchQuery, cancellationToken);
+
+            var ids = new List<long>();
+            foreach (var hit in result.Hits)
+            {
+                if (long.TryParse(hit.Id, out var id))
+                    ids.Add(id);
+            }
+            var estimatedTotal = result is SearchResult<VideoSearchDocument> sr ? sr.EstimatedTotalHits : ids.Count;
+            return new VideoSearchResult(ids, estimatedTotal);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to search videos in Meilisearch for query: {Query}", query);
+            return new VideoSearchResult(Array.Empty<long>(), 0);
+        }
+    }
+
     private static VideoSearchDocument ToSearchDocument(Video video) =>
         new()
         {

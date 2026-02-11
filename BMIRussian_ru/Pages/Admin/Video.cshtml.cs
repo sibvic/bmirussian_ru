@@ -97,5 +97,13 @@ namespace BMIRussian_ru.Pages.Admin
             }
             return RedirectToPage();
         }
+
+        public async Task<IActionResult> OnPostIndexAllAsync()
+        {
+            var videos = await _context.Videos.Where(v => v.Status == VideoStatus.Published).ToListAsync();
+            await _meilisearch.IndexVideosAsync(videos);
+            TempData["IndexAllMessage"] = $"Проиндексировано видео: {videos.Count}.";
+            return RedirectToPage();
+        }
     }
 }

@@ -172,7 +172,8 @@ namespace BMIRussian_ru.Pages.Admin
         private static bool IsVkUrl(string url)
         {
             if (string.IsNullOrWhiteSpace(url)) return false;
-            return url.Contains("vk.com/", StringComparison.OrdinalIgnoreCase) && url.IndexOf("video", StringComparison.OrdinalIgnoreCase) >= 0;
+            return (url.Contains("vk.com/", StringComparison.OrdinalIgnoreCase) || url.Contains("vkvideo.ru/", StringComparison.OrdinalIgnoreCase))
+                   && url.IndexOf("video", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static bool TryGetYouTubeVideoId(string url, out string? videoId)

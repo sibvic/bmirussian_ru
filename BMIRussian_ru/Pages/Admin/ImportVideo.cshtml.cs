@@ -11,7 +11,7 @@ using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
-    public class ImportVideoModel(ApplicationDbContext context, IMediaInfoKafkaService mediaInfoKafkaService) : PageModel
+    public class ImportVideoModel(ApplicationDbContext context, IMediaInfoKafkaService mediaInfoKafkaService, IMeilisearchService meilisearch) : PageModel
     {
         [BindProperty]
         [Display(Name = "Данные")]
@@ -25,19 +25,26 @@ namespace BMIRussian_ru.Pages.Admin
         public async Task<IActionResult> OnPostAsync()
         {
             // Import by URL (YouTube / VK): one URL per line
-            var (imported, errors) = await ImportByUrlsAsync(Data);
+            var (imported, errors, addedVideos) = await ImportByUrlsAsync(Data);
             await context.SaveChangesAsync();
-            if (imported > 0 && errors.Count == 0)
-                return RedirectToPage("/Admin/Video");
+            foreach (var v in addedVideos)
+                await context.Entry(v).ReloadAsync();
+            if (imported > 0)
+            {
+                await meilisearch.IndexVideosAsync(addedVideos);
+                if (errors.Count == 0)
+                    return RedirectToPage("/Admin/Video");
+            }
 
             ModelState.AddModelError(nameof(Data), "Введите данные для импорта или URL-ы видео.");
             return Page();
         }
 
-        private async Task<(int imported, List<string> errors)> ImportByUrlsAsync(string urlsText)
+        private async Task<(int imported, List<string> errors, List<Video> addedVideos)> ImportByUrlsAsync(string urlsText)
         {
             var errors = new List<string>();
             var imported = 0;
+            var addedVideos = new List<Video>();
             var urls = urlsText
                 .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Where(s => s.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || s.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
@@ -47,7 +54,7 @@ namespace BMIRussian_ru.Pages.Admin
             if (urls.Count == 0)
             {
                 errors.Add("Не найдено ни одного URL (http/https).");
-                return (0, errors);
+                return (0, errors, addedVideos);
             }
 
             foreach (var url in urls)
@@ -97,10 +104,11 @@ namespace BMIRussian_ru.Pages.Admin
                     Keywords = ""
                 };
                 context.Videos.Add(video);
+                addedVideos.Add(video);
                 imported++;
             }
 
-            return (imported, errors);
+            return (imported, errors, addedVideos);
         }
 
         private static bool IsYouTubeUrl(string url)

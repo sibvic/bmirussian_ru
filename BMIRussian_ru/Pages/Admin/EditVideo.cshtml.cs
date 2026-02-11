@@ -11,10 +11,12 @@ namespace BMIRussian_ru.Pages.Admin
     public class EditVideoModel : PageModel
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMeilisearchService _meilisearch;
 
-        public EditVideoModel(ApplicationDbContext context)
+        public EditVideoModel(ApplicationDbContext context, IMeilisearchService meilisearch)
         {
             _context = context;
+            _meilisearch = meilisearch;
         }
 
         [BindProperty]
@@ -89,6 +91,7 @@ namespace BMIRussian_ru.Pages.Admin
             }
 
             await _context.SaveChangesAsync();
+            await _meilisearch.IndexVideoAsync(video);
             return RedirectToPage("/Admin/Video");
         }
     }

@@ -2,16 +2,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BMIRussian_ru.Data;
+using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
     public class VideoModel : PageModel
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMeilisearchService _meilisearch;
 
-        public VideoModel(ApplicationDbContext context)
+        public VideoModel(ApplicationDbContext context, IMeilisearchService meilisearch)
         {
             _context = context;
+            _meilisearch = meilisearch;
         }
 
         public const int PageSize = 20;
@@ -90,6 +93,7 @@ namespace BMIRussian_ru.Pages.Admin
             {
                 _context.Videos.Remove(video);
                 await _context.SaveChangesAsync();
+                await _meilisearch.DeleteVideoAsync(id);
             }
             return RedirectToPage();
         }

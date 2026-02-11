@@ -29,6 +29,9 @@ builder.Services.Configure<KafkaMessageSenderOptions>(
 builder.Services.AddSingleton<KafkaMessageSender>();
 builder.Services.Configure<DownloaderKafkaOptions>(
     builder.Configuration.GetSection("DownloaderKafka"));
+builder.Services.Configure<MeilisearchOptions>(
+    builder.Configuration.GetSection(MeilisearchOptions.SectionName));
+builder.Services.AddSingleton<IMeilisearchService, MeilisearchService>();
 builder.Services.AddSingleton<MediaInfoResultStore>();
 builder.Services.AddSingleton<IMediaInfoKafkaService, MediaInfoKafkaService>();
 builder.Services.AddHostedService<MediaInfoResultConsumerService>();

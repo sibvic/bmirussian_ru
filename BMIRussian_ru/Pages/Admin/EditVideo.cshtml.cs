@@ -91,7 +91,10 @@ namespace BMIRussian_ru.Pages.Admin
             }
 
             await _context.SaveChangesAsync();
-            await _meilisearch.IndexVideoAsync(video);
+            if (video.Status == VideoStatus.Published)
+                await _meilisearch.IndexVideoAsync(video);
+            else
+                await _meilisearch.DeleteVideoAsync(video.Id);
             return RedirectToPage("/Admin/Video");
         }
     }

@@ -11,7 +11,7 @@ using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
-    public class ImportVideoModel(ApplicationDbContext context, IMediaInfoKafkaService mediaInfoKafkaService, IMeilisearchService meilisearch) : PageModel
+    public class ImportVideoModel(ApplicationDbContext context, IMediaInfoKafkaService mediaInfoKafkaService) : PageModel
     {
         [BindProperty]
         [Display(Name = "Данные")]
@@ -31,7 +31,6 @@ namespace BMIRussian_ru.Pages.Admin
                 await context.Entry(v).ReloadAsync();
             if (imported > 0)
             {
-                await meilisearch.IndexVideosAsync(addedVideos);
                 if (errors.Count == 0)
                     return RedirectToPage("/Admin/Video");
             }

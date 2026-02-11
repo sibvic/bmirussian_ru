@@ -52,7 +52,8 @@ namespace BMIRussian_ru.Pages.Admin
             if (tagTexts.Any())
                 await context.SaveChangesAsync();
 
-            await meilisearch.IndexVideoAsync(video);
+            if (video.Status == VideoStatus.Published)
+                await meilisearch.IndexVideoAsync(video);
 
             return RedirectToPage("/Admin/Video");
         }

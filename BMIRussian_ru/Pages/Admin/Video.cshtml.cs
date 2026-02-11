@@ -24,10 +24,11 @@ namespace BMIRussian_ru.Pages.Admin
         public bool HasNextPage => PageIndex < TotalPages;
         public VideoStatus? StatusFilter { get; set; }
         public string? TitleFilter { get; set; }
+        public bool NoDescriptionFilter { get; set; }
 
         private const string StatusFilterKey = "Admin.Video.StatusFilter";
 
-        public async Task OnGetAsync(int pageIndex = 1, VideoStatus? statusFilter = null, string? titleFilter = null, bool clearFilter = false)
+        public async Task OnGetAsync(int pageIndex = 1, VideoStatus? statusFilter = null, string? titleFilter = null, bool noDescriptionFilter = false, bool clearFilter = false)
         {
             PageIndex = Math.Max(1, pageIndex);
 
@@ -36,6 +37,7 @@ namespace BMIRussian_ru.Pages.Admin
                 Response.Cookies.Delete(StatusFilterKey, new CookieOptions { Path = "/" });
                 StatusFilter = null;
                 TitleFilter = null;
+                NoDescriptionFilter = false;
             }
             else
             {
@@ -55,6 +57,7 @@ namespace BMIRussian_ru.Pages.Admin
                     else
                         StatusFilter = null;
                 }
+                NoDescriptionFilter = noDescriptionFilter;
             }
 
             IQueryable<Video> query = _context.Videos
@@ -68,6 +71,9 @@ namespace BMIRussian_ru.Pages.Admin
                 var titleLower = TitleFilter.Trim().ToLower();
                 query = query.Where(v => v.Title != null && v.Title.ToLower().Contains(titleLower));
             }
+
+            if (NoDescriptionFilter)
+                query = query.Where(v => string.IsNullOrWhiteSpace(v.Description));
 
             TotalCount = await query.CountAsync();
 

@@ -31,8 +31,12 @@
         </select>
         <label for="titleFilter" class="form-label mb-0 ms-2">Название:</label>
         <input type="text" name="titleFilter" id="titleFilter" class="form-control form-control-sm" style="width: 12rem;" value="@Model.TitleFilter" placeholder="Часть названия" />
+        <div class="form-check form-check-inline ms-2 mb-0">
+            <input type="checkbox" name="noDescriptionFilter" id="noDescriptionFilter" value="true" class="form-check-input" @(Model.NoDescriptionFilter ? "checked" : null) />
+            <label for="noDescriptionFilter" class="form-check-label">Нет описания</label>
+        </div>
         <button type="submit" class="btn btn-sm btn-outline-secondary">Показать</button>
-        @if (Model.StatusFilter.HasValue || !string.IsNullOrEmpty(Model.TitleFilter))
+        @if (Model.StatusFilter.HasValue || !string.IsNullOrEmpty(Model.TitleFilter) || Model.NoDescriptionFilter)
         {
             <a asp-page="/Admin/Video" asp-route-pageIndex="1" asp-route-clearFilter="true" class="btn btn-sm btn-link">Сбросить</a>
         }
@@ -95,13 +99,13 @@
         <nav aria-label="Навигация по страницам" class="mt-3">
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
-                    <a class="page-link" asp-page="/Admin/Video" asp-route-pageIndex="@(Model.PageIndex - 1)" asp-route-statusFilter="@Model.StatusFilter" asp-route-titleFilter="@Model.TitleFilter" aria-label="Назад">Назад</a>
+                    <a class="page-link" asp-page="/Admin/Video" asp-route-pageIndex="@(Model.PageIndex - 1)" asp-route-statusFilter="@Model.StatusFilter" asp-route-titleFilter="@Model.TitleFilter" asp-route-noDescriptionFilter="@Model.NoDescriptionFilter" aria-label="Назад">Назад</a>
                 </li>
                 <li class="page-item disabled">
                     <span class="page-link">@Model.PageIndex из @Model.TotalPages</span>
                 </li>
                 <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
-                    <a class="page-link" asp-page="/Admin/Video" asp-route-pageIndex="@(Model.PageIndex + 1)" asp-route-statusFilter="@Model.StatusFilter" asp-route-titleFilter="@Model.TitleFilter" aria-label="Вперёд">Вперёд</a>
+                    <a class="page-link" asp-page="/Admin/Video" asp-route-pageIndex="@(Model.PageIndex + 1)" asp-route-statusFilter="@Model.StatusFilter" asp-route-titleFilter="@Model.TitleFilter" asp-route-noDescriptionFilter="@Model.NoDescriptionFilter" aria-label="Вперёд">Вперёд</a>
                 </li>
             </ul>
         </nav>

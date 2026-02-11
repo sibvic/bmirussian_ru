@@ -25,10 +25,8 @@ namespace BMIRussian_ru.Pages.Admin
         public async Task<IActionResult> OnPostAsync()
         {
             // Import by URL (YouTube / VK): one URL per line
-            var (imported, errors, addedVideos) = await ImportByUrlsAsync(Data);
+            var (imported, errors) = await ImportByUrlsAsync(Data);
             await context.SaveChangesAsync();
-            foreach (var v in addedVideos)
-                await context.Entry(v).ReloadAsync();
             if (imported > 0)
             {
                 if (errors.Count == 0)
@@ -39,11 +37,10 @@ namespace BMIRussian_ru.Pages.Admin
             return Page();
         }
 
-        private async Task<(int imported, List<string> errors, List<Video> addedVideos)> ImportByUrlsAsync(string urlsText)
+        private async Task<(int imported, List<string> errors)> ImportByUrlsAsync(string urlsText)
         {
             var errors = new List<string>();
             var imported = 0;
-            var addedVideos = new List<Video>();
             var urls = urlsText
                 .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Where(s => s.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || s.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
@@ -53,7 +50,7 @@ namespace BMIRussian_ru.Pages.Admin
             if (urls.Count == 0)
             {
                 errors.Add("Не найдено ни одного URL (http/https).");
-                return (0, errors, addedVideos);
+                return (0, errors);
             }
 
             foreach (var url in urls)
@@ -103,11 +100,10 @@ namespace BMIRussian_ru.Pages.Admin
                     Keywords = ""
                 };
                 context.Videos.Add(video);
-                addedVideos.Add(video);
                 imported++;
             }
 
-            return (imported, errors, addedVideos);
+            return (imported, errors);
         }
 
         private static bool IsYouTubeUrl(string url)

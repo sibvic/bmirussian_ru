@@ -21,6 +21,7 @@ public class MeilisearchService : IMeilisearchService
 
         try
         {
+            _logger.LogInformation($"Meilisearch at server {opts.Host}");
             _client = new MeilisearchClient(opts.Host, opts.ApiKey);
         }
         catch (Exception ex)

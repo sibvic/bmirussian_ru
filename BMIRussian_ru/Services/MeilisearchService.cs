@@ -31,13 +31,13 @@ public class MeilisearchService : IMeilisearchService
         }
     }
 
-    public async Task IndexVideoAsync(Video video, CancellationToken cancellationToken = default)
+    public async Task IndexVideoAsync(Video video, string? transcriptContent = null, CancellationToken cancellationToken = default)
     {
         if (_client == null) return;
 
         try
         {
-            var doc = ToSearchDocument(video);
+            var doc = ToSearchDocument(video, transcriptContent);
             var index = _client.Index(VideosIndexName);
             await index.AddDocumentsAsync(new[] { doc }, cancellationToken: cancellationToken);
         }
@@ -108,18 +108,21 @@ public class MeilisearchService : IMeilisearchService
         }
     }
 
-    private static VideoSearchDocument ToSearchDocument(Video video) =>
+    private static VideoSearchDocument ToSearchDocument(Video video, string? transcriptContent = null) =>
         new()
         {
             Id = video.Id.ToString(),
             Title = video.Title ?? "",
-            Description = video.Description ?? ""
+            Description = video.Description ?? "",
+            TranscriptContent = transcriptContent
         };
+    private static VideoSearchDocument ToSearchDocument(Video video) => ToSearchDocument(video, null);
 
     private sealed class VideoSearchDocument
     {
         public string Id { get; set; } = "";
         public string Title { get; set; } = "";
         public string Description { get; set; } = "";
+        public string? TranscriptContent { get; set; }
     }
 }

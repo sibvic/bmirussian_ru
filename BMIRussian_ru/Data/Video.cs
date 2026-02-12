@@ -26,6 +26,8 @@ namespace BMIRussian_ru.Data
 
         public VideoStatus Status { get; set; }
 
+        public bool HasTranscript { get; set; }
+
         public string Keywords { get; set; }
 
         public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();

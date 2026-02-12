@@ -83,7 +83,7 @@ namespace BMIRussian_ru.Pages.Admin
 
             await context.SaveChangesAsync();
             if (video.Status == VideoStatus.Published)
-                await meilisearch.IndexVideoAsync(video);
+                await meilisearch.IndexVideoAsync(video, null);
             else
                 await meilisearch.DeleteVideoAsync(video.Id);
             return RedirectToPage("/Admin/Video");

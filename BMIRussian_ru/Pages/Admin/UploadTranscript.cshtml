@@ -1,0 +1,36 @@
+@page "/Admin/UploadTranscript/{id:long}"
+@model BMIRussian_ru.Pages.Admin.UploadTranscriptModel
+@{
+    ViewData["Title"] = "Загрузить транскрипт — Админ";
+}
+
+<div class="container mt-4">
+    <h1 class="h4 mb-4">Загрузить транскрипт</h1>
+
+    @if (Model.Video != null)
+    {
+        <div class="alert alert-light border mb-4">
+            <strong>Видео:</strong> @Model.Video.Title
+        </div>
+
+        <form method="post" asp-route-id="@Model.Video.Id" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="TranscriptFile" class="form-label">Файл транскрипта</label>
+                <input asp-for="TranscriptFile" class="form-control" type="file" accept=".txt,.srt,.vtt,.json,.ass,.ssa" />
+                <span asp-validation-for="TranscriptFile" class="text-danger"></span>
+                <div class="form-text">Поддерживаются форматы: TXT, SRT, VTT, JSON, ASS, SSA</div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Загрузить</button>
+                <a asp-page="/Admin/Video" class="btn btn-outline-secondary">Отмена</a>
+            </div>
+        </form>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

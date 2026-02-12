@@ -19,10 +19,11 @@ namespace BMIRussian_ru.Pages.Admin
         public VideoStatus? StatusFilter { get; set; }
         public string? TitleFilter { get; set; }
         public bool NoDescriptionFilter { get; set; }
+        public bool NoTranscriptFilter { get; set; }
 
         private const string StatusFilterKey = "Admin.Video.StatusFilter";
 
-        public async Task OnGetAsync(int pageIndex = 1, VideoStatus? statusFilter = null, string? titleFilter = null, bool noDescriptionFilter = false, bool clearFilter = false)
+        public async Task OnGetAsync(int pageIndex = 1, VideoStatus? statusFilter = null, string? titleFilter = null, bool noDescriptionFilter = false, bool noTranscriptFilter = false, bool clearFilter = false)
         {
             PageIndex = Math.Max(1, pageIndex);
 
@@ -32,6 +33,7 @@ namespace BMIRussian_ru.Pages.Admin
                 StatusFilter = null;
                 TitleFilter = null;
                 NoDescriptionFilter = false;
+                NoTranscriptFilter = false;
             }
             else
             {
@@ -52,6 +54,7 @@ namespace BMIRussian_ru.Pages.Admin
                         StatusFilter = null;
                 }
                 NoDescriptionFilter = noDescriptionFilter;
+                NoTranscriptFilter = noTranscriptFilter;
             }
 
             IQueryable<Video> query = context.Videos
@@ -68,6 +71,9 @@ namespace BMIRussian_ru.Pages.Admin
 
             if (NoDescriptionFilter)
                 query = query.Where(v => string.IsNullOrWhiteSpace(v.Description));
+
+            if (NoTranscriptFilter)
+                query = query.Where(v => !v.HasTranscript);
 
             TotalCount = await query.CountAsync();
 

@@ -7,7 +7,7 @@ public interface IMeilisearchService
     /// <summary>
     /// Index or update a video in Meilisearch (id, title, description).
     /// </summary>
-    Task IndexVideoAsync(Video video, CancellationToken cancellationToken = default);
+    Task IndexVideoAsync(Video video, string? transcriptContent, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Index multiple videos in Meilisearch.

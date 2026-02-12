@@ -32,6 +32,9 @@ builder.Services.Configure<DownloaderKafkaOptions>(
 builder.Services.Configure<MeilisearchOptions>(
     builder.Configuration.GetSection(MeilisearchOptions.SectionName));
 builder.Services.AddSingleton<IMeilisearchService, MeilisearchService>();
+builder.Services.Configure<MinioOptions>(
+    builder.Configuration.GetSection(MinioOptions.SectionName));
+builder.Services.AddSingleton<IMinioService, MinioService>();
 builder.Services.AddSingleton<MediaInfoResultStore>();
 builder.Services.AddSingleton<IMediaInfoKafkaService, MediaInfoKafkaService>();
 builder.Services.AddHostedService<MediaInfoResultConsumerService>();

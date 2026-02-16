@@ -22,6 +22,8 @@ namespace BMIRussian_ru.Pages.Admin
         public bool NoTranscriptFilter { get; set; }
 
         private const string StatusFilterKey = "Admin.Video.StatusFilter";
+        private const string NoDescriptionFilterKey = "Admin.Video.NoDescriptionFilter";
+        private const string NoTranscriptFilterKey = "Admin.Video.NoTranscriptFilter";
 
         public async Task OnGetAsync(int pageIndex = 1, VideoStatus? statusFilter = null, string? titleFilter = null, bool noDescriptionFilter = false, bool noTranscriptFilter = false, bool clearFilter = false)
         {
@@ -30,6 +32,8 @@ namespace BMIRussian_ru.Pages.Admin
             if (clearFilter)
             {
                 Response.Cookies.Delete(StatusFilterKey, new CookieOptions { Path = "/" });
+                Response.Cookies.Delete(NoDescriptionFilterKey, new CookieOptions { Path = "/" });
+                Response.Cookies.Delete(NoTranscriptFilterKey, new CookieOptions { Path = "/" });
                 StatusFilter = null;
                 TitleFilter = null;
                 NoDescriptionFilter = false;
@@ -53,8 +57,24 @@ namespace BMIRussian_ru.Pages.Admin
                     else
                         StatusFilter = null;
                 }
-                NoDescriptionFilter = noDescriptionFilter;
-                NoTranscriptFilter = noTranscriptFilter;
+                if (Request.Query.ContainsKey("noDescriptionFilter"))
+                {
+                    NoDescriptionFilter = noDescriptionFilter;
+                    Response.Cookies.Append(NoDescriptionFilterKey, noDescriptionFilter ? "1" : "0", new CookieOptions { Path = "/", MaxAge = TimeSpan.FromDays(30) });
+                }
+                else
+                {
+                    NoDescriptionFilter = Request.Cookies.TryGetValue(NoDescriptionFilterKey, out var ndVal) && ndVal == "1";
+                }
+                if (Request.Query.ContainsKey("noTranscriptFilter"))
+                {
+                    NoTranscriptFilter = noTranscriptFilter;
+                    Response.Cookies.Append(NoTranscriptFilterKey, noTranscriptFilter ? "1" : "0", new CookieOptions { Path = "/", MaxAge = TimeSpan.FromDays(30) });
+                }
+                else
+                {
+                    NoTranscriptFilter = Request.Cookies.TryGetValue(NoTranscriptFilterKey, out var ntVal) && ntVal == "1";
+                }
             }
 
             IQueryable<Video> query = context.Videos

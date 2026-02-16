@@ -41,10 +41,12 @@
         </select>
         <label for="titleFilter" class="form-label mb-0 ms-2">Название:</label>
         <input type="text" name="titleFilter" id="titleFilter" class="form-control form-control-sm" style="width: 12rem;" value="@Model.TitleFilter" placeholder="Часть названия" />
+        <input type="hidden" name="noDescriptionFilter" value="false" />
         <div class="form-check form-check-inline ms-2 mb-0">
             <input type="checkbox" name="noDescriptionFilter" id="noDescriptionFilter" value="true" class="form-check-input" @(Model.NoDescriptionFilter ? "checked" : null) />
             <label for="noDescriptionFilter" class="form-check-label">Нет описания</label>
         </div>
+        <input type="hidden" name="noTranscriptFilter" value="false" />
         <div class="form-check form-check-inline ms-2 mb-0">
             <input type="checkbox" name="noTranscriptFilter" id="noTranscriptFilter" value="true" class="form-check-input" @(Model.NoTranscriptFilter ? "checked" : null) />
             <label for="noTranscriptFilter" class="form-check-label">Нет транскрипта</label>

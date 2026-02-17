@@ -59,8 +59,8 @@ namespace BMIRussian_ru.Pages.Admin
                 }
                 if (Request.Query.ContainsKey("noDescriptionFilter"))
                 {
-                    NoDescriptionFilter = noDescriptionFilter;
-                    Response.Cookies.Append(NoDescriptionFilterKey, noDescriptionFilter ? "1" : "0", new CookieOptions { Path = "/", MaxAge = TimeSpan.FromDays(30) });
+                    NoDescriptionFilter = Request.Query["noDescriptionFilter"].Contains("true", StringComparer.OrdinalIgnoreCase);
+                    Response.Cookies.Append(NoDescriptionFilterKey, NoDescriptionFilter ? "1" : "0", new CookieOptions { Path = "/", MaxAge = TimeSpan.FromDays(30) });
                 }
                 else
                 {
@@ -68,8 +68,8 @@ namespace BMIRussian_ru.Pages.Admin
                 }
                 if (Request.Query.ContainsKey("noTranscriptFilter"))
                 {
-                    NoTranscriptFilter = noTranscriptFilter;
-                    Response.Cookies.Append(NoTranscriptFilterKey, noTranscriptFilter ? "1" : "0", new CookieOptions { Path = "/", MaxAge = TimeSpan.FromDays(30) });
+                    NoTranscriptFilter = Request.Query["noTranscriptFilter"].Contains("true", StringComparer.OrdinalIgnoreCase);
+                    Response.Cookies.Append(NoTranscriptFilterKey, NoTranscriptFilter ? "1" : "0", new CookieOptions { Path = "/", MaxAge = TimeSpan.FromDays(30) });
                 }
                 else
                 {

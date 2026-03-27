@@ -10,9 +10,25 @@
             <div class="card shadow-sm">
                 <div class="card-body p-4 p-md-5">
                     <h2 class="card-title h4 mb-4 text-center">Вход на сайт</h2>
-                    <p class="text-center text-muted mb-4">
-                        Для входа на BMIRussian.ru используйте наш Telegram-бот.
-                    </p>
+                    @if (TempData["LoginError"] is string loginErr)
+                    {
+                        <div class="alert alert-danger" role="alert">@loginErr</div>
+                    }
+                    @if (Model.GoogleSignInConfigured)
+                    {
+                        <p class="text-center text-muted mb-3">Войдите через Google или через Telegram-бота.</p>
+                        <form method="post" asp-page-handler="GoogleSignIn" id="googleSignInForm" class="d-grid gap-2 mb-4">
+                            <input type="hidden" name="credential" id="googleCredential" />
+                            <div id="googleSignInButton" class="d-flex justify-content-center"></div>
+                        </form>
+                        <p class="text-center text-muted small mb-3">или</p>
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted mb-4">
+                            Для входа на BMIRussian.ru используйте наш Telegram-бот.
+                        </p>
+                    }
                     <ol class="mb-4 ps-3">
                         <li class="mb-2">Откройте бота в Telegram.</li>
                         <li class="mb-2">Отправьте команду для входа (/login).</li>
@@ -37,3 +53,26 @@
         </div>
     </div>
 </div>
+@if (Model.GoogleSignInConfigured)
+{
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        window.addEventListener('load', function () {
+            if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) return;
+            google.accounts.id.initialize({
+                client_id: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GoogleClientId)),
+                callback: function (response) {
+                    if (!response || !response.credential) return;
+                    document.getElementById('googleCredential').value = response.credential;
+                    document.getElementById('googleSignInForm').submit();
+                },
+                ux_mode: 'popup',
+                auto_select: false
+            });
+            google.accounts.id.renderButton(
+                document.getElementById('googleSignInButton'),
+                { theme: 'outline', size: 'large', width: 320, text: 'signin_with', locale: 'ru' }
+            );
+        });
+    </script>
+}

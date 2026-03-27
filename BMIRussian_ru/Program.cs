@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Prometheus;
 using Sibvic.AuthLib;
+using Sibvic.AuthLib.Google;
 using Sibvic.AuthLib.Logic;
 using Sibvic.UserWithBalanceLib;
 using Sibvic.UserWithBalanceLib.Data;
@@ -50,6 +51,19 @@ builder.Services.AddSingleton(new AuthOptions(jwtKey, jwtIssuer));
 builder.Services.AddTransient<IAuthLogicCallback, WelcomeBalanceCallback>();
 builder.Services.AddTransient<BalanceManager>();
 builder.Services.AddScoped<AuthLogic>();
+
+builder.Services.Configure<GoogleSignInOptions>(o =>
+    o.ClientId = builder.Configuration["Google:ClientId"] ?? "");
+builder.Services.AddSingleton<GoogleSignInService>();
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+    options.IdleTimeout = TimeSpan.FromMinutes(15);
+});
 
 builder.Services.AddAuthentication(options =>
 {
@@ -129,6 +143,8 @@ app.UseMetricServer();
 app.UseHttpMetrics();
 
 app.UseRouting();
+
+app.UseSession();
 
 app.UseCors("APIPolicy");
 

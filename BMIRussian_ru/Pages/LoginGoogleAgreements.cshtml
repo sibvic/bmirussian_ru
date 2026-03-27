@@ -1,0 +1,66 @@
+@page
+@model BMIRussian_ru.Pages.LoginGoogleAgreementsModel
+@using Markdig
+@{
+    ViewData["Title"] = "Соглашения — вход через Google";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    @Model.ErrorMessage
+                </div>
+            }
+
+            @if (Model.UnacceptedAgreements != null && Model.UnacceptedAgreements.Any())
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="h5 mb-0">Необходимо принять соглашения</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            <p class="mb-4">Пожалуйста, ознакомьтесь и примите следующие соглашения:</p>
+
+                            @for (int i = 0; i < Model.UnacceptedAgreements.Count; i++)
+                            {
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input"
+                                                   type="checkbox"
+                                                   name="SelectedAgreementIds"
+                                                   value="@Model.UnacceptedAgreements[i].Id"
+                                                   id="agreement_@Model.UnacceptedAgreements[i].Id"
+                                                   required />
+                                            <label class="form-check-label fw-bold" for="agreement_@Model.UnacceptedAgreements[i].Id">
+                                                @Model.UnacceptedAgreements[i].Title
+                                            </label>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(Model.UnacceptedAgreements[i].Content))
+                                        {
+                                            <div class="ms-4">
+                                                <div class="text-muted small">
+                                                    @Html.Raw(Markdown.ToHtml(Model.UnacceptedAgreements[i].Content))
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    Принять и войти
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -18,6 +18,10 @@
                     {
                         <p class="text-center text-muted mb-3">Войдите через Google или через Telegram-бота.</p>
                         <form method="post" asp-page-handler="GoogleSignIn" id="googleSignInForm" class="d-grid gap-2 mb-4">
+                            @if (!string.IsNullOrEmpty(Model.ReturnUrl))
+                            {
+                                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                            }
                             <input type="hidden" name="credential" id="googleCredential" />
                             <div id="googleSignInButton" class="d-flex justify-content-center"></div>
                         </form>

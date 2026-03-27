@@ -10,9 +10,6 @@ ARG GITHUB_USERNAME
 ENV GITHUB_TOKEN=${GITHUB_TOKEN}
 ENV GITHUB_USERNAME=${GITHUB_USERNAME}
 
-# Copy nuget.config first
-COPY BMIRussian_ru/nuget.config ./nuget.config
-
 # Configure NuGet authentication for GitHub Packages if token is provided
 # Method 1: Add to user-level config (for when not using --configfile)
 RUN if [ -n "$GITHUB_TOKEN" ] && [ -n "$GITHUB_USERNAME" ]; then \

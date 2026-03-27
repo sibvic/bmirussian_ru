@@ -62,6 +62,9 @@
                         @if (Context.Request.Cookies.ContainsKey("jwtToken"))
                         {
                             <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Profile">Профиль</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-page="/Logout">Выход</a>
                             </li>
                         }

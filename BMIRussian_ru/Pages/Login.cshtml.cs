@@ -32,6 +32,10 @@ namespace BMIRussian_ru.Pages
 
         public bool GoogleSignInConfigured => !string.IsNullOrWhiteSpace(GoogleClientId);
 
+        /// <summary>After successful sign-in or credential link, redirect here if the URL is local (e.g. /Profile).</summary>
+        [BindProperty(SupportsGet = true)]
+        public string? ReturnUrl { get; set; }
+
         public IActionResult OnGet()
         {
             TelegramBotUrl = configuration["TelegramBot:LoginBotUrl"];
@@ -47,19 +51,19 @@ namespace BMIRussian_ru.Pages
             if (string.IsNullOrWhiteSpace(credential))
             {
                 TempData["LoginError"] = "Не удалось получить учётные данные Google.";
-                return RedirectToPage();
+                return RedirectToLoginWithReturn();
             }
 
             if (!googleSignIn.IsConfigured)
             {
                 TempData["LoginError"] = "Вход через Google не настроен на сервере.";
-                return RedirectToPage();
+                return RedirectToLoginWithReturn();
             }
 
             if (await googleSignIn.ValidateIdTokenAsync(credential, cancellationToken) is not { } payload)
             {
                 TempData["LoginError"] = "Не удалось подтвердить вход через Google.";
-                return RedirectToPage();
+                return RedirectToLoginWithReturn();
             }
 
             var sourceId = GoogleSignInService.CredentialSourceId(payload.Subject);
@@ -78,7 +82,7 @@ namespace BMIRussian_ru.Pages
                 {
                     TempData["LoginError"] =
                         "Этот аккаунт Google уже привязан к другому пользователю.";
-                    return RedirectToPage();
+                    return RedirectToLoginWithReturn();
                 }
 
                 user = linkUser;
@@ -104,13 +108,15 @@ namespace BMIRussian_ru.Pages
             if (user == null)
             {
                 TempData["LoginError"] = "Не удалось зарегистрировать пользователя.";
-                return RedirectToPage();
+                return RedirectToLoginWithReturn();
             }
 
             try
             {
                 var jwtToken = authLogic.GenerateToken(user);
                 JwtCookieHelper.AppendJwtCookie(Response, Request, configuration, jwtToken);
+                if (IsSafeLocalRedirect(ReturnUrl))
+                    return Redirect(ReturnUrl!);
                 return RedirectToPage("/Index");
             }
             catch (AgreementsNotAcceptedException)
@@ -123,15 +129,25 @@ namespace BMIRussian_ru.Pages
                 }
 
                 TempData["LoginError"] = "Ошибка при проверке соглашений";
-                return RedirectToPage();
+                return RedirectToLoginWithReturn();
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Google sign-in failed after token validation");
                 TempData["LoginError"] = "Произошла ошибка при входе. Попробуйте позже.";
-                return RedirectToPage();
+                return RedirectToLoginWithReturn();
             }
         }
+
+        private IActionResult RedirectToLoginWithReturn()
+        {
+            if (IsSafeLocalRedirect(ReturnUrl))
+                return RedirectToPage("/Login", new { returnUrl = ReturnUrl });
+            return RedirectToPage("/Login");
+        }
+
+        private bool IsSafeLocalRedirect(string? url) =>
+            !string.IsNullOrWhiteSpace(url) && Url.IsLocalUrl(url);
 
         /// <summary>
         /// Current user when JWT cookie is valid (linking Google to an existing session).

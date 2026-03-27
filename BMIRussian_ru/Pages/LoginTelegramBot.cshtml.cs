@@ -1,9 +1,11 @@
+using System.Security.Claims;
 using BMIRussian_ru.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Sibvic.AuthLib;
 using Sibvic.AuthLib.Logic;
 using Sibvic.AuthLib.Exceptions;
+using AuthUser = Sibvic.AuthLib.User;
 
 namespace BMIRussian_ru.Pages
 {
@@ -33,6 +35,9 @@ namespace BMIRussian_ru.Pages
 
             TemporaryToken = token;
             TelegramId = telegramid;
+
+            if (await TryResolveLinkUserAsync(HttpContext.RequestAborted) is { } linkUser)
+                return await TryAddTelegramCredentialForSignedInUserAsync(linkUser, token, telegramid, HttpContext.RequestAborted);
 
             try
             {
@@ -124,6 +129,10 @@ namespace BMIRussian_ru.Pages
             Response.Cookies.Append("jwtToken", jwtToken, cookieOptions);
         }
 
+        /// <summary>Agreement form posts with handler=Post; without this handler the POST is not handled.</summary>
+        public Task<IActionResult> OnPostPostAsync(string? token = null, string? telegramid = null) =>
+            OnPostAsync(token, telegramid);
+
         public async Task<IActionResult> OnPostAsync(string? token = null, string? telegramid = null)
         {
             if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(telegramid))
@@ -134,6 +143,9 @@ namespace BMIRussian_ru.Pages
 
             TemporaryToken = token;
             TelegramId = telegramid;
+
+            if (await TryResolveLinkUserAsync(HttpContext.RequestAborted) is { } linkUserPost)
+                return await TryAddTelegramCredentialForSignedInUserAsync(linkUserPost, token, telegramid, HttpContext.RequestAborted);
 
             try
             {
@@ -239,6 +251,85 @@ namespace BMIRussian_ru.Pages
             return Page();
         }
 
+        private async Task<AuthUser?> TryResolveLinkUserAsync(CancellationToken cancellationToken)
+        {
+            if (User.Identity?.IsAuthenticated != true)
+                return null;
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("id");
+            if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+                return null;
+
+            return await context.Set<AuthUser>().FindAsync([userId], cancellationToken);
+        }
+
+        /// <summary>
+        /// Validates the bot temporary token, then attaches Telegram to <paramref name="linkUser"/> if that Telegram id is not used by another account.
+        /// </summary>
+        private async Task<IActionResult> TryAddTelegramCredentialForSignedInUserAsync(
+            AuthUser linkUser,
+            string token,
+            string telegramid,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                _ = authLogic.AuthenticateFromTelegramBot(telegramid, token);
+            }
+            catch (AgreementsNotAcceptedException)
+            {
+                ErrorMessage =
+                    "Для этого Telegram-аккаунта нужно принять соглашения. Выйдите с сайта, откройте ссылку из бота и примите соглашения, затем войдите снова и повторите привязку со страницы профиля.";
+                return Page();
+            }
+            catch (InvalidTokenException)
+            {
+                ErrorMessage = "Неверный токен";
+                return Page();
+            }
+            catch (TokenExpiredException)
+            {
+                ErrorMessage = "Токен истек. Пожалуйста, получите новый токен через Telegram бота.";
+                return Page();
+            }
+            catch (UserNotFoundException)
+            {
+                ErrorMessage = "Пользователь не найден";
+                return Page();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Telegram token validation failed during credential link");
+                ErrorMessage = "Произошла ошибка при проверке токена. Пожалуйста, попробуйте позже.";
+                return Page();
+            }
+
+            var linked = await authLogic.TryAddCredentialForLinkUserAsync(
+                linkUser,
+                telegramid,
+                CredentialsSource.Telegram,
+                cancellationToken);
+
+            if (!linked)
+            {
+                ErrorMessage = "Этот аккаунт Telegram уже привязан к другому пользователю.";
+                return Page();
+            }
+
+            try
+            {
+                var jwtToken = authLogic.GenerateToken(linkUser);
+                SetJwtCookie(jwtToken);
+                TempData["ProfileMessage"] = "Telegram успешно привязан к вашему аккаунту.";
+                return RedirectToPage("/Profile");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to refresh session after Telegram credential link");
+                ErrorMessage = "Telegram привязан, но не удалось обновить сессию. Войдите снова.";
+                return Page();
+            }
+        }
     }
 
     public class AgreementViewModel

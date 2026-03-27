@@ -1,5 +1,5 @@
 # Stage 1: Build the ASP.NET Core application
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Build arguments for GitHub token
@@ -44,7 +44,7 @@ RUN dotnet build BMIRussian_ru.csproj -c Release -o /app/build
 RUN dotnet publish BMIRussian_ru.csproj -c Release -o /app/publish
 
 # Stage 2: Run the application
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
 # Install yt-dlp for video import by URL (YouTube, VK)

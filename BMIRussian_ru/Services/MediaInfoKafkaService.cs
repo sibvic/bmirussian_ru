@@ -50,8 +50,7 @@ public class MediaInfoKafkaService : IMediaInfoKafkaService, IDisposable
             _store.SetFailed(requestId, ex.Message);
         }
 
-        var result = await _store.WaitForResultAsync(requestId, TimeSpan.FromSeconds(60), cancellationToken);
-        return result;
+        return await _store.WaitForResultAsync(requestId, TimeSpan.FromSeconds(60), cancellationToken);
     }
 
     private IProducer<string, string> CreateProducer()

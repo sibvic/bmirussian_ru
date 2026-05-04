@@ -8,21 +8,14 @@ namespace BMIRussian_ru.Services;
 /// <summary>
 /// Consumes from the Downloader result topic and stores MediaInfoResult/MediaInfoFailed in MediaInfoResultStore.
 /// </summary>
-public class MediaInfoResultConsumerService : BackgroundService
+public class MediaInfoResultConsumerService(
+    IOptions<DownloaderKafkaOptions> options,
+    MediaInfoResultStore store,
+    ILogger<MediaInfoResultConsumerService> logger) : BackgroundService
 {
-    private readonly DownloaderKafkaOptions _options;
-    private readonly MediaInfoResultStore _store;
-    private readonly ILogger<MediaInfoResultConsumerService> _logger;
-
-    public MediaInfoResultConsumerService(
-        IOptions<DownloaderKafkaOptions> options,
-        MediaInfoResultStore store,
-        ILogger<MediaInfoResultConsumerService> logger)
-    {
-        _options = options?.Value ?? new DownloaderKafkaOptions();
-        _store = store ?? throw new ArgumentNullException(nameof(store));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly DownloaderKafkaOptions _options = options?.Value ?? new DownloaderKafkaOptions();
+    private readonly MediaInfoResultStore _store = store ?? throw new ArgumentNullException(nameof(store));
+    private readonly ILogger<MediaInfoResultConsumerService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -67,6 +60,7 @@ public class MediaInfoResultConsumerService : BackgroundService
                         try
                         {
                             var msg = JsonConvert.DeserializeObject<MediaInfoResultMessage>(value);
+                            _logger.LogInformation("Video parser {RequestId}", msg.RequestId);
                             if (msg != null && !string.IsNullOrEmpty(msg.RequestId))
                             {
                                 _store.SetResult(msg.RequestId, new MediaInfoResult
@@ -88,6 +82,7 @@ public class MediaInfoResultConsumerService : BackgroundService
                         try
                         {
                             var msg = JsonConvert.DeserializeObject<MediaInfoFailedMessage>(value);
+                            _logger.LogInformation("Video failed to parse {RequestId}", msg.RequestId);
                             if (msg != null && !string.IsNullOrEmpty(msg.RequestId))
                                 _store.SetFailed(msg.RequestId, msg.Error ?? "Unknown error");
                         }

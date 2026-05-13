@@ -38,6 +38,7 @@ public class MediaInfoKafkaService : IMediaInfoKafkaService, IDisposable
         var json = JsonConvert.SerializeObject(message);
         try
         {
+            _logger.LogInformation("Sending MediaInfo request for {Url}", url);
             var producer = _producer.Value;
             await producer.ProduceAsync(
                 _options.Topic,

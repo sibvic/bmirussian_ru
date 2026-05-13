@@ -5,13 +5,17 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using BMIRussian_ru.Data;
 using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
-    public class ImportVideoModel(ApplicationDbContext context, IMediaInfoKafkaService mediaInfoKafkaService) : PageModel
+    public class ImportVideoModel(
+        ApplicationDbContext context,
+        IMediaInfoKafkaService mediaInfoKafkaService,
+        ILogger<ImportVideoModel> logger) : PageModel
     {
         [BindProperty]
         [Display(Name = "Данные")]
@@ -24,13 +28,28 @@ namespace BMIRussian_ru.Pages.Admin
 
         public async Task<IActionResult> OnPostAsync()
         {
+            logger.LogInformation("Admin video import submitted.");
             // Import by URL (YouTube / VK): one URL per line
             var (imported, errors) = await ImportByUrlsAsync(Data);
             await context.SaveChangesAsync();
+            logger.LogInformation(
+                "Video import finished: {Imported} added, {ErrorCount} error(s). Persisted to database.",
+                imported,
+                errors.Count);
+
+            if (errors.Count > 0)
+            {
+                foreach (var err in errors)
+                    logger.LogWarning("Import issue: {Message}", err);
+            }
+
             if (imported > 0)
             {
                 if (errors.Count == 0)
+                {
+                    logger.LogInformation("All URLs imported successfully; redirecting to /Admin/Video.");
                     return RedirectToPage("/Admin/Video");
+                }
             }
 
             ModelState.AddModelError(nameof(Data), "Введите данные для импорта или URL-ы видео.");
@@ -49,14 +68,20 @@ namespace BMIRussian_ru.Pages.Admin
 
             if (urls.Count == 0)
             {
+                logger.LogWarning("No http/https URLs found in import text.");
                 errors.Add("Не найдено ни одного URL (http/https).");
                 return (0, errors);
             }
 
+            logger.LogInformation("Importing {UrlCount} distinct URL(s).", urls.Count);
+
             foreach (var url in urls)
             {
+                logger.LogInformation("Processing import URL: {Url}", url);
+
                 if (!IsYouTubeUrl(url) && !IsVkUrl(url))
                 {
+                    logger.LogWarning("Unsupported host for import: {Url}", url);
                     errors.Add($"Неподдерживаемый URL (только YouTube и VK): {url}");
                     continue;
                 }
@@ -68,17 +93,20 @@ namespace BMIRussian_ru.Pages.Admin
                 }
                 catch (Exception ex)
                 {
+                    logger.LogWarning(ex, "Metadata fetch failed for {Url}", url);
                     errors.Add($"{url}: {ex.Message}");
                     continue;
                 }
 
                 if (meta == null)
                 {
+                    logger.LogWarning("No metadata returned for {Url}", url);
                     errors.Add($"{url}: не удалось получить метаданные.");
                     continue;
                 }
                 if (string.IsNullOrWhiteSpace(meta.Title))
                 {
+                    logger.LogWarning("Empty title in metadata for {Url}", url);
                     errors.Add($"Не удалось получить название: {url}");
                     continue;
                 }
@@ -101,6 +129,11 @@ namespace BMIRussian_ru.Pages.Admin
                 };
                 context.Videos.Add(video);
                 imported++;
+                logger.LogInformation(
+                    "Queued video for save: Title={Title}, SEOId={SeoId}, PublishDate={PublishDate:o}",
+                    video.Title,
+                    video.SEOId,
+                    video.PublishDate);
             }
 
             return (imported, errors);
@@ -142,6 +175,7 @@ namespace BMIRussian_ru.Pages.Admin
             var kafkaResult = await mediaInfoKafkaService.GetVideoMetadataAsync(url);
             if (kafkaResult != null)
             {
+                logger.LogDebug("Using Kafka MediaInfo for {Url}", url);
                 if (!kafkaResult.IsSuccess)
                 {
                     throw new InvalidOperationException(kafkaResult.Error ?? "Unknown error");
@@ -152,10 +186,11 @@ namespace BMIRussian_ru.Pages.Admin
                     kafkaResult.Description,
                     kafkaResult.PublishDate);
             }
+            logger.LogDebug("Using local yt-dlp for {Url}", url);
             return await GetVideoMetadataViaYtDlpAsync(url);
         }
 
-        private static async Task<VideoMetadata> GetVideoMetadataViaYtDlpAsync(string url)
+        private async Task<VideoMetadata> GetVideoMetadataViaYtDlpAsync(string url)
         {
             var startInfo = new ProcessStartInfo
             {
@@ -171,17 +206,30 @@ namespace BMIRussian_ru.Pages.Admin
 
             using var process = Process.Start(startInfo);
             if (process == null)
+            {
+                logger.LogError("yt-dlp process could not be started (not in PATH or blocked).");
                 throw new InvalidOperationException("Не удалось запустить yt-dlp. Установите yt-dlp и добавьте его в PATH.");
+            }
 
             var stdout = await process.StandardOutput.ReadToEndAsync();
             var stderr = await process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
 
             if (process.ExitCode != 0)
+            {
+                logger.LogWarning(
+                    "yt-dlp exited with code {ExitCode} for {Url}. Stderr: {Stderr}",
+                    process.ExitCode,
+                    url,
+                    string.IsNullOrWhiteSpace(stderr) ? "(empty)" : stderr.Trim());
                 throw new InvalidOperationException(string.IsNullOrWhiteSpace(stderr) ? "yt-dlp вернул ошибку." : stderr.Trim());
+            }
 
             if (string.IsNullOrWhiteSpace(stdout))
+            {
+                logger.LogWarning("yt-dlp returned no stdout for {Url}", url);
                 throw new InvalidOperationException("yt-dlp не вернул данные.");
+            }
 
             var json = JObject.Parse(stdout);
             var title = json["title"]?.ToString();

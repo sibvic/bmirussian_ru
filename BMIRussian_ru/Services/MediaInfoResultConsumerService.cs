@@ -31,7 +31,7 @@ public class MediaInfoResultConsumerService(
         {
             BootstrapServers = _options.BootstrapServers,
             GroupId = "BMIRussian_ru-MediaInfoResult",
-            AutoOffsetReset = AutoOffsetReset.Latest,
+            AutoOffsetReset = AutoOffsetReset.Earliest,
         };
         if (!string.IsNullOrWhiteSpace(_options.Username))
         {

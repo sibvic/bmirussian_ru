@@ -149,7 +149,9 @@ namespace BMIRussian_ru.Pages.Admin
         private static bool IsVkUrl(string url)
         {
             if (string.IsNullOrWhiteSpace(url)) return false;
-            return (url.Contains("vk.com/", StringComparison.OrdinalIgnoreCase) || url.Contains("vkvideo.ru/", StringComparison.OrdinalIgnoreCase))
+            return (url.Contains("vk.com/", StringComparison.OrdinalIgnoreCase)
+                    || url.Contains("vk.ru/", StringComparison.OrdinalIgnoreCase)
+                    || url.Contains("vkvideo.ru/", StringComparison.OrdinalIgnoreCase))
                    && url.IndexOf("video", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 

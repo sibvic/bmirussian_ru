@@ -28,7 +28,9 @@ namespace BMIRussian_ru.Services
             var normalized = TryNormalizeYouTubeUrl(url);
             if (normalized != null)
                 return normalized;
-            if (!url.Contains("vk.com", StringComparison.OrdinalIgnoreCase) || !url.Contains("video_ext.php", StringComparison.OrdinalIgnoreCase))
+            var isVk = url.Contains("vk.com", StringComparison.OrdinalIgnoreCase)
+                       || url.Contains("vk.ru", StringComparison.OrdinalIgnoreCase);
+            if (!isVk || !url.Contains("video_ext.php", StringComparison.OrdinalIgnoreCase))
                 return url;
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || string.IsNullOrEmpty(uri.Query))
                 return url;
@@ -40,7 +42,7 @@ namespace BMIRussian_ru.Services
             if (!long.TryParse(oidStr, out var oid) || !long.TryParse(idStr, out var id))
                 return url;
             var ownerId = Math.Abs(oid);
-            return $"https://vk.com/video-{ownerId}_{id}";
+            return $"https://{uri.Host}/video-{ownerId}_{id}";
         }
 
         /// <summary>Normalizes YouTube URLs (embed, watch, youtu.be) to canonical https://www.youtube.com/watch?v=VIDEO_ID</summary>

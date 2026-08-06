@@ -54,7 +54,7 @@ namespace BMIRussian_ru.Pages
                     if (!string.IsNullOrEmpty(videoId))
                         EmbedUrl = $"https://www.youtube.com/embed/{videoId}";
                 }
-                else if (FirstVideoUrl.Contains("vk.com", StringComparison.OrdinalIgnoreCase))
+                else if (FirstVideoUrl.Contains("vk.com", StringComparison.OrdinalIgnoreCase) || FirstVideoUrl.Contains("vk.ru", StringComparison.OrdinalIgnoreCase))
                 {
                     var vkEmbed = TryGetVkEmbedUrl(FirstVideoUrl);
                     if (vkEmbed != null)
@@ -78,7 +78,8 @@ namespace BMIRussian_ru.Pages
         {
             if (string.IsNullOrEmpty(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Host == null)
                 return null;
-            if (!uri.Host.Contains("vk.com", StringComparison.OrdinalIgnoreCase))
+            if (!uri.Host.Contains("vk.com", StringComparison.OrdinalIgnoreCase)
+                && !uri.Host.Contains("vk.ru", StringComparison.OrdinalIgnoreCase))
                 return null;
 
             // Path: /video-45671298_456241811 or /video45671298_456241811
@@ -114,7 +115,7 @@ namespace BMIRussian_ru.Pages
             if (string.IsNullOrEmpty(rest) || !long.TryParse(oidStr, out var oid) || !long.TryParse(rest, out var videoId))
                 return null;
 
-            return $"https://vk.com/video_ext.php?oid={oid}&id={videoId}";
+            return $"https://{uri.Host}/video_ext.php?oid={oid}&id={videoId}";
         }
 
         private static string? GetQueryValue(string query, string key)

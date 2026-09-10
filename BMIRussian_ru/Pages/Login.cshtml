@@ -30,11 +30,13 @@
                         }
                         @if (Model.VKSignInConfigured)
                         {
-                            <div class="d-grid gap-2 mb-4">
-                                <a class="btn btn-primary btn-lg" asp-page="/Login" asp-page-handler="VkLogin" asp-route-returnUrl="@Model.ReturnUrl">
-                                    Войти через VK
-                                </a>
-                            </div>
+                            <form method="post" asp-page-handler="VkSignIn" id="vkSignInForm" style="display:none;">
+                                <input type="hidden" name="accessToken" id="vkAccessToken" />
+                                @if (!string.IsNullOrEmpty(Model.ReturnUrl))
+                                {
+                                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                                }
+                            </form>
                         }
                         <p class="text-center text-muted small mb-3">или</p>
                     }
@@ -88,6 +90,52 @@
                 document.getElementById('googleSignInButton'),
                 { theme: 'outline', size: 'large', width: 320, text: 'signin_with', locale: 'ru' }
             );
+        });
+    </script>
+}
+@if (Model.VKSignInConfigured)
+{
+    <script src="https://unpkg.com/@@vkid/sdk@@2.6.8/dist-sdk/umd/index.js" async defer></script>
+    <script>
+        function vkidOnSuccess(data) {
+            var input = document.getElementById('vkAccessToken');
+            if (input) input.value = data.access_token;
+            var form = document.getElementById('vkSignInForm');
+            if (form) form.submit();
+        }
+
+        function vkidOnError(error) {
+            console.error('VK ID error', error);
+        }
+
+        window.addEventListener('load', function () {
+            if (!('VKIDSDK' in window)) return;
+
+            var VKID = window.VKIDSDK;
+
+            VKID.Config.init({
+                app: @Html.Raw(Model.VKClientId),
+                redirectUrl: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.VKRedirectUrl)),
+                responseMode: VKID.ConfigResponseMode.Callback,
+                source: VKID.ConfigSource.LOWCODE,
+                scope: 'email'
+            });
+
+            var floatingOneTap = new VKID.FloatingOneTap();
+
+            floatingOneTap.render({
+                appName: 'BMIRussian',
+                showAlternativeLogin: true
+            })
+            .on(VKID.WidgetEvents.ERROR, vkidOnError)
+            .on(VKID.FloatingOneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
+                var code = payload.code;
+                var deviceId = payload.device_id;
+
+                VKID.Auth.exchangeCode(code, deviceId)
+                    .then(vkidOnSuccess)
+                    .catch(vkidOnError);
+            });
         });
     </script>
 }

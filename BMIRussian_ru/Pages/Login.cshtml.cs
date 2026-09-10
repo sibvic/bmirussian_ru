@@ -43,6 +43,8 @@ namespace BMIRussian_ru.Pages
         /// </summary>
         public string? VKClientId { get; set; }
 
+        public string? VKRedirectUrl { get; set; }
+
         public bool VKSignInConfigured => !string.IsNullOrWhiteSpace(VKClientId);
 
         /// <summary>After successful sign-in or credential link, redirect here if the URL is local (e.g. /Profile).</summary>
@@ -54,6 +56,7 @@ namespace BMIRussian_ru.Pages
             TelegramBotUrl = configuration["TelegramBot:LoginBotUrl"];
             GoogleClientId = configuration["Google:ClientId"];
             VKClientId = configuration["VK:ClientId"];
+            VKRedirectUrl = configuration["VK:RedirectUri"] ?? $"{GetBaseUrl().TrimEnd('/')}/Login";
             return Page();
         }
 
@@ -255,6 +258,103 @@ namespace BMIRussian_ru.Pages
             }
         }
 
+        public async Task<IActionResult> OnPostVkSignInAsync(string? accessToken, string? returnUrl, CancellationToken cancellationToken)
+        {
+            TelegramBotUrl = configuration["TelegramBot:LoginBotUrl"];
+            GoogleClientId = configuration["Google:ClientId"];
+            VKClientId = configuration["VK:ClientId"];
+
+            if (string.IsNullOrWhiteSpace(accessToken))
+            {
+                TempData["LoginError"] = "Не удалось получить токен VK.";
+                return RedirectToLoginWithReturn();
+            }
+
+            if (!vkSignIn.IsConfigured)
+            {
+                TempData["LoginError"] = "Вход через VK не настроен на сервере.";
+                return RedirectToLoginWithReturn();
+            }
+
+            if (await vkSignIn.ValidateAccessTokenAsync(accessToken, cancellationToken) is not { } payload)
+            {
+                TempData["LoginError"] = "Не удалось подтвердить вход через VK.";
+                return RedirectToLoginWithReturn();
+            }
+
+            var sourceId = VkSignInService.CredentialSourceId(payload.UserId);
+
+            var linkUser = await TryResolveLinkUserAsync(cancellationToken);
+            AuthUser? user;
+
+            if (linkUser != null)
+            {
+                var linked = await authLogic.TryAddCredentialForLinkUserAsync(
+                    linkUser,
+                    sourceId,
+                    CredentialsSource.VKAccount,
+                    cancellationToken);
+                if (!linked)
+                {
+                    TempData["LoginError"] =
+                        "Этот аккаунт VK уже привязан к другому пользователю.";
+                    return RedirectToLoginWithReturn();
+                }
+
+                user = linkUser;
+            }
+            else
+            {
+                user = authLogic.FindUser(sourceId, CredentialsSource.VKAccount);
+                if (user == null)
+                {
+                    user = await authLogic.RegisterUser(
+                        sourceId,
+                        payload.FirstName,
+                        payload.LastName,
+                        username: payload.Email ?? sourceId,
+                        photo_url: payload.Avatar,
+                        auth_date: null,
+                        hash: null,
+                        CredentialsSource.VKAccount,
+                        cancellationToken);
+                }
+            }
+
+            if (user == null)
+            {
+                TempData["LoginError"] = "Не удалось зарегистрировать пользователя.";
+                return RedirectToLoginWithReturn();
+            }
+
+            try
+            {
+                var jwtToken = authLogic.GenerateToken(user);
+                JwtCookieHelper.AppendJwtCookie(Response, Request, configuration, jwtToken);
+                if (IsSafeLocalRedirect(returnUrl))
+                    return Redirect(returnUrl!);
+                return RedirectToPage("/Index");
+            }
+            catch (AgreementsNotAcceptedException)
+            {
+                var agreementsToSign = authLogic.GetAgreementsToSign(user);
+                if (agreementsToSign != null && agreementsToSign.Any())
+                {
+                    HttpContext.Session.SetString(LoginGoogleAgreementsModel.PendingGoogleUserIdSessionKey, user.Id.ToString(CultureInfo.InvariantCulture));
+                    return RedirectToPage("/LoginGoogleAgreements");
+                }
+
+                TempData["LoginError"] = "Ошибка при проверке соглашений";
+                return RedirectToLoginWithReturn();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "VK sign-in failed after token validation");
+                TempData["LoginError"] = "Произошла ошибка при входе. Попробуйте позже.";
+                return RedirectToLoginWithReturn();
+            }
+        }
+
         public async Task<IActionResult> OnPostGoogleSignInAsync(string? credential, CancellationToken cancellationToken)
         {
             TelegramBotUrl = configuration["TelegramBot:LoginBotUrl"];
@@ -362,18 +462,23 @@ namespace BMIRussian_ru.Pages
         private bool IsSafeLocalRedirect(string? url) =>
             !string.IsNullOrWhiteSpace(url) && Url.IsLocalUrl(url);
 
+        private string? GetBaseUrl()
+        {
+            var baseUrl = configuration["SelfUrl"];
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                baseUrl = $"{Request.Scheme}://{Request.Host}";
+            }
+            return baseUrl;
+        }
+
         private string? GetVkRedirectUri()
         {
             var configured = configuration["VK:RedirectUri"];
             if (!string.IsNullOrWhiteSpace(configured))
                 return configured;
 
-            var baseUrl = configuration["SelfUrl"];
-            if (string.IsNullOrWhiteSpace(baseUrl))
-            {
-                baseUrl = $"{Request.Scheme}://{Request.Host}";
-            }
-
+            var baseUrl = GetBaseUrl();
             var callbackPath = Url.Page("/Login", new { handler = "VkCallback" });
             if (string.IsNullOrWhiteSpace(callbackPath))
                 return null;

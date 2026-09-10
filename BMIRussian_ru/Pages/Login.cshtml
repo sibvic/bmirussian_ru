@@ -2,6 +2,8 @@
 @model BMIRussian_ru.Pages.LoginModel
 @{
     ViewData["Title"] = "Вход";
+    var showGoogle = Model.GoogleSignInConfigured && !Model.IsRussianUser;
+    var showTelegram = !Model.IsRussianUser;
 }
 
 <div class="container mt-5">
@@ -14,10 +16,17 @@
                     {
                         <div class="alert alert-danger" role="alert">@loginErr</div>
                     }
-                    @if (Model.GoogleSignInConfigured || Model.VKSignInConfigured)
+                    @if (showGoogle || Model.VKSignInConfigured)
                     {
-                        <p class="text-center text-muted mb-3">Войдите через один из доступных сервисов или через Telegram-бота.</p>
-                        @if (Model.GoogleSignInConfigured)
+                        @if (showTelegram)
+                        {
+                            <p class="text-center text-muted mb-3">Войдите через один из доступных сервисов или через Telegram-бота.</p>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted mb-3">Войдите через ВКонтакте.</p>
+                        }
+                        @if (showGoogle)
                         {
                             <form method="post" asp-page-handler="GoogleSignIn" id="googleSignInForm" class="d-grid gap-2 mb-4">
                                 @if (!string.IsNullOrEmpty(Model.ReturnUrl))
@@ -38,39 +47,45 @@
                                 }
                             </form>
                         }
-                        <p class="text-center text-muted small mb-3">или</p>
+                        @if (showTelegram)
+                        {
+                            <p class="text-center text-muted small mb-3">или</p>
+                        }
                     }
-                    else
+                    else if (showTelegram)
                     {
                         <p class="text-center text-muted mb-4">
                             Для входа на BMIRussian.ru используйте наш Telegram-бот.
                         </p>
                     }
-                    <ol class="mb-4 ps-3">
-                        <li class="mb-2">Откройте бота в Telegram.</li>
-                        <li class="mb-2">Отправьте команду для входа (/login).</li>
-                        <li>Перейдите по ссылке из ответа бота — вы будете авторизованы на сайте.</li>
-                    </ol>
-                    @if (!string.IsNullOrWhiteSpace(Model.TelegramBotUrl))
+                    @if (showTelegram)
                     {
-                        <div class="d-grid gap-2">
-                            <a href="@Model.TelegramBotUrl" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
-                                Открыть бота в Telegram
-                            </a>
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="text-center small text-muted mb-0">
-                            Откройте бота в Telegram и запросите ссылку для входа.
-                        </p>
+                        <ol class="mb-4 ps-3">
+                            <li class="mb-2">Откройте бота в Telegram.</li>
+                            <li class="mb-2">Отправьте команду для входа (/login).</li>
+                            <li>Перейдите по ссылке из ответа бота — вы будете авторизованы на сайте.</li>
+                        </ol>
+                        @if (!string.IsNullOrWhiteSpace(Model.TelegramBotUrl))
+                        {
+                            <div class="d-grid gap-2">
+                                <a href="@Model.TelegramBotUrl" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
+                                    Открыть бота в Telegram
+                                </a>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-center small text-muted mb-0">
+                                Откройте бота в Telegram и запросите ссылку для входа.
+                            </p>
+                        }
                     }
                 </div>
             </div>
         </div>
     </div>
 </div>
-@if (Model.GoogleSignInConfigured)
+@if (showGoogle)
 {
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>

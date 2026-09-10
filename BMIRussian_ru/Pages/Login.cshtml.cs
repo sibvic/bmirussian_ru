@@ -47,6 +47,8 @@ namespace BMIRussian_ru.Pages
 
         public bool VKSignInConfigured => !string.IsNullOrWhiteSpace(VKClientId);
 
+        public bool IsRussianUser { get; set; }
+
         /// <summary>After successful sign-in or credential link, redirect here if the URL is local (e.g. /Profile).</summary>
         [BindProperty(SupportsGet = true)]
         public string? ReturnUrl { get; set; }
@@ -57,6 +59,7 @@ namespace BMIRussian_ru.Pages
             GoogleClientId = configuration["Google:ClientId"];
             VKClientId = configuration["VK:ClientId"];
             VKRedirectUrl = configuration["VK:RedirectUri"] ?? $"{GetBaseUrl().TrimEnd('/')}/Login";
+            IsRussianUser = DetectRussianUser();
             return Page();
         }
 
@@ -461,6 +464,20 @@ namespace BMIRussian_ru.Pages
 
         private bool IsSafeLocalRedirect(string? url) =>
             !string.IsNullOrWhiteSpace(url) && Url.IsLocalUrl(url);
+
+        private bool DetectRussianUser()
+        {
+            var country = Request.Headers["CF-IPCountry"].ToString();
+            if (string.IsNullOrWhiteSpace(country))
+                country = Request.Headers["X-Geo-Country"].ToString();
+            if (!string.IsNullOrWhiteSpace(country))
+                return "RU".Equals(country, StringComparison.OrdinalIgnoreCase)
+                    || "RUS".Equals(country, StringComparison.OrdinalIgnoreCase);
+
+            var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+            return !string.IsNullOrWhiteSpace(acceptLanguage)
+                && acceptLanguage.Contains("ru", StringComparison.OrdinalIgnoreCase);
+        }
 
         private string? GetBaseUrl()
         {

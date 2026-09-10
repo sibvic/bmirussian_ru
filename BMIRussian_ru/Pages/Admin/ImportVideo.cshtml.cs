@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Text;
@@ -15,6 +16,7 @@ namespace BMIRussian_ru.Pages.Admin
     public class ImportVideoModel(
         ApplicationDbContext context,
         IMediaInfoKafkaService mediaInfoKafkaService,
+        IConfiguration configuration,
         ILogger<ImportVideoModel> logger) : PageModel
     {
         [BindProperty]
@@ -192,11 +194,17 @@ namespace BMIRussian_ru.Pages.Admin
             return await GetVideoMetadataViaYtDlpAsync(url);
         }
 
+        private string YtDlpPath =>
+            configuration["VideoImport:YtDlpPath"] is { Length: > 0 } configured
+                ? configured
+                : "yt-dlp";
+
         private async Task<VideoMetadata> GetVideoMetadataViaYtDlpAsync(string url)
         {
+            var ytDlpPath = YtDlpPath;
             var startInfo = new ProcessStartInfo
             {
-                FileName = "yt-dlp",
+                FileName = ytDlpPath,
                 ArgumentList = { "--no-download", "-j", "-q", url },
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -206,12 +214,7 @@ namespace BMIRussian_ru.Pages.Admin
                 CreateNoWindow = true
             };
 
-            using var process = Process.Start(startInfo);
-            if (process == null)
-            {
-                logger.LogError("yt-dlp process could not be started (not in PATH or blocked).");
-                throw new InvalidOperationException("Не удалось запустить yt-dlp. Установите yt-dlp и добавьте его в PATH.");
-            }
+            using var process = StartYtDlp(startInfo, ytDlpPath);
 
             var stdout = await process.StandardOutput.ReadToEndAsync();
             var stderr = await process.StandardError.ReadToEndAsync();
@@ -245,6 +248,32 @@ namespace BMIRussian_ru.Pages.Admin
 
             return new VideoMetadata(title, thumbnail, description, publishDate);
         }
+
+        private Process StartYtDlp(ProcessStartInfo startInfo, string ytDlpPath)
+        {
+            Process? process;
+            try
+            {
+                process = Process.Start(startInfo);
+            }
+            catch (Win32Exception ex)
+            {
+                logger.LogError(ex, "yt-dlp ({YtDlpPath}) could not be started.", ytDlpPath);
+                throw new InvalidOperationException(YtDlpMissingMessage(ytDlpPath), ex);
+            }
+
+            if (process == null)
+            {
+                logger.LogError("yt-dlp ({YtDlpPath}) could not be started (not in PATH or blocked).", ytDlpPath);
+                throw new InvalidOperationException(YtDlpMissingMessage(ytDlpPath));
+            }
+
+            return process;
+        }
+
+        private static string YtDlpMissingMessage(string ytDlpPath) =>
+            $"Не удалось запустить yt-dlp ('{ytDlpPath}'). Установите yt-dlp и добавьте его в PATH " +
+            "или укажите полный путь в настройке VideoImport:YtDlpPath.";
 
         private static DateTime ParsePublishDate(JObject json)
         {

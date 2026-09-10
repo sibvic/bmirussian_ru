@@ -14,17 +14,28 @@
                     {
                         <div class="alert alert-danger" role="alert">@loginErr</div>
                     }
-                    @if (Model.GoogleSignInConfigured)
+                    @if (Model.GoogleSignInConfigured || Model.VKSignInConfigured)
                     {
-                        <p class="text-center text-muted mb-3">Войдите через Google или через Telegram-бота.</p>
-                        <form method="post" asp-page-handler="GoogleSignIn" id="googleSignInForm" class="d-grid gap-2 mb-4">
-                            @if (!string.IsNullOrEmpty(Model.ReturnUrl))
-                            {
-                                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
-                            }
-                            <input type="hidden" name="credential" id="googleCredential" />
-                            <div id="googleSignInButton" class="d-flex justify-content-center"></div>
-                        </form>
+                        <p class="text-center text-muted mb-3">Войдите через один из доступных сервисов или через Telegram-бота.</p>
+                        @if (Model.GoogleSignInConfigured)
+                        {
+                            <form method="post" asp-page-handler="GoogleSignIn" id="googleSignInForm" class="d-grid gap-2 mb-4">
+                                @if (!string.IsNullOrEmpty(Model.ReturnUrl))
+                                {
+                                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                                }
+                                <input type="hidden" name="credential" id="googleCredential" />
+                                <div id="googleSignInButton" class="d-flex justify-content-center"></div>
+                            </form>
+                        }
+                        @if (Model.VKSignInConfigured)
+                        {
+                            <div class="d-grid gap-2 mb-4">
+                                <a class="btn btn-primary btn-lg" asp-page="/Login" asp-page-handler="VkLogin" asp-route-returnUrl="@Model.ReturnUrl">
+                                    Войти через VK
+                                </a>
+                            </div>
+                        }
                         <p class="text-center text-muted small mb-3">или</p>
                     }
                     else

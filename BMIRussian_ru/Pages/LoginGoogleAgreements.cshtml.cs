@@ -69,7 +69,7 @@ namespace BMIRussian_ru.Pages
             var idStr = HttpContext.Session.GetString(PendingGoogleUserIdSessionKey);
             if (string.IsNullOrEmpty(idStr) || !long.TryParse(idStr, out var userId))
             {
-                ErrorMessage = "Сессия истекла. Войдите снова через Google.";
+                ErrorMessage = "Сессия истекла. Войдите снова."
                 return Page();
             }
 

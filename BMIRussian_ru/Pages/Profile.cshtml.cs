@@ -22,7 +22,11 @@ namespace BMIRussian_ru.Pages
 
         public bool CanLinkTelegram { get; private set; }
 
+        public bool CanLinkVK { get; private set; }
+
         public bool GoogleSignInConfigured => !string.IsNullOrWhiteSpace(configuration["Google:ClientId"]);
+
+        public bool VKSignInConfigured => !string.IsNullOrWhiteSpace(configuration["VK:ClientId"]);
 
         public string? TelegramBotUrl => configuration["TelegramBot:LoginBotUrl"];
 
@@ -59,6 +63,7 @@ namespace BMIRussian_ru.Pages
 
             var sources = creds.Select(c => (CredentialsSource)c.Source).ToHashSet();
             CanLinkGoogle = GoogleSignInConfigured && !sources.Contains(CredentialsSource.GoogleAccount);
+            CanLinkVK = VKSignInConfigured && !sources.Contains(CredentialsSource.VKAccount);
             CanLinkTelegram = !sources.Contains(CredentialsSource.Telegram);
 
             return Page();
@@ -68,6 +73,7 @@ namespace BMIRussian_ru.Pages
         {
             CredentialsSource.Telegram => "Telegram",
             CredentialsSource.GoogleAccount => "Google",
+            CredentialsSource.VKAccount => "VK",
             _ => source.ToString()
         };
     }

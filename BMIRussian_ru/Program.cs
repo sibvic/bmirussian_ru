@@ -10,6 +10,7 @@ using Prometheus;
 using Sibvic.AuthLib;
 using Sibvic.AuthLib.Google;
 using Sibvic.AuthLib.Logic;
+using Sibvic.AuthLib.VK;
 using Sibvic.UserWithBalanceLib;
 using Sibvic.UserWithBalanceLib.Data;
 
@@ -55,6 +56,15 @@ builder.Services.AddScoped<AuthLogic>();
 builder.Services.Configure<GoogleSignInOptions>(o =>
     o.ClientId = builder.Configuration["Google:ClientId"] ?? "");
 builder.Services.AddSingleton<GoogleSignInService>();
+
+builder.Services.Configure<VkSignInOptions>(o =>
+{
+    o.ClientId = builder.Configuration["VK:ClientId"] ?? "";
+    var endpoint = builder.Configuration["VK:UserInfoEndpoint"];
+    if (!string.IsNullOrWhiteSpace(endpoint))
+        o.UserInfoEndpoint = endpoint;
+});
+builder.Services.AddHttpClient<VkSignInService, VkSignInService>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

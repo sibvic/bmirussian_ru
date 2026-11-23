@@ -8,5 +8,7 @@ public class MinioOptions
     public string AccessKey { get; set; } = "";
     public string SecretKey { get; set; } = "";
     public bool UseSsl { get; set; } = false;
-    public string Bucket { get; set; } = "bmi";
+    public string BucketName { get; set; } = "bmi";
+    /// <summary>Legacy alias for BucketName.</summary>
+    public string Bucket { get => BucketName; set => BucketName = value; }
 }

@@ -35,7 +35,8 @@ sudo sh scripts/install_yt_dlp.sh
 
 - Веб-приложение отправляет задание в Kafka топик `stl-generate`
   (настройки `ShopKafka`) и ждёт результата в `stl-generate-result`.
-- Отдельный воркер `StlWorker/` (консольное приложение) забирает задания,
+- Отдельный воркер `StlWorker/` (консольное приложение, живёт в соседней
+  директории рядом с этим репозиторием) забирает задания,
   рисует текст в PNG (шрифт Danger 96pt, `Assets/Fonts/Danger.ttf`),
   прогоняет `Assets/3d/key_tag.scad` через OpenSCAD, загружает STL в MinIO
   (`shop/{requestId}.stl`) и публикует результат.
@@ -52,5 +53,5 @@ sudo sh scripts/install_openscad.sh
 
 Деплой воркера на сервере — по аналогии с основным сайтом: `dotnet publish`,
 выкладка в `/var/bmirussian_stl_worker`, systemd unit `scripts/bmirussian_stl_worker.service`.
-При деплое через docker-compose добавьте сервис из `StlWorker/Dockerfile`
-(см. секцию `stl_worker` в корневом docker-compose.yml).
+При деплое через docker-compose используется сервис `stl_worker`
+(в корневом docker-compose.yml, build context `./StlWorker`).

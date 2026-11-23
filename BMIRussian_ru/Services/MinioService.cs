@@ -6,7 +6,7 @@ namespace BMIRussian_ru.Services;
 public class MinioService(Microsoft.Extensions.Options.IOptions<MinioOptions> options) : IMinioService
 {
     private readonly MinioOptions _options = options.Value;
-    private readonly string _bucket = options.Value.Bucket;
+    private readonly string _bucket = options.Value.BucketName;
 
     private IMinioClient CreateClient() => new MinioClient()
         .WithEndpoint(_options.Endpoint)

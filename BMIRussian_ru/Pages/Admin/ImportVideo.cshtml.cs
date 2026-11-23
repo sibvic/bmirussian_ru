@@ -17,7 +17,8 @@ namespace BMIRussian_ru.Pages.Admin
         ApplicationDbContext context,
         IMediaInfoKafkaService mediaInfoKafkaService,
         IConfiguration configuration,
-        ILogger<ImportVideoModel> logger) : PageModel
+        ILogger<ImportVideoModel> logger,
+        MetricsService metrics) : PageModel
     {
         [BindProperty]
         [Display(Name = "Данные")]
@@ -80,11 +81,13 @@ namespace BMIRussian_ru.Pages.Admin
             foreach (var url in urls)
             {
                 logger.LogInformation("Processing import URL: {Url}", url);
+                var host = ImportHost(url);
 
                 if (!IsYouTubeUrl(url) && !IsVkUrl(url))
                 {
                     logger.LogWarning("Unsupported host for import: {Url}", url);
                     errors.Add($"Неподдерживаемый URL (только YouTube и VK): {url}");
+                    metrics.IncrementVideosImported("error", host);
                     continue;
                 }
 
@@ -97,6 +100,7 @@ namespace BMIRussian_ru.Pages.Admin
                 {
                     logger.LogWarning(ex, "Metadata fetch failed for {Url}", url);
                     errors.Add($"{url}: {ex.Message}");
+                    metrics.IncrementVideosImported("error", host);
                     continue;
                 }
 
@@ -104,12 +108,14 @@ namespace BMIRussian_ru.Pages.Admin
                 {
                     logger.LogWarning("No metadata returned for {Url}", url);
                     errors.Add($"{url}: не удалось получить метаданные.");
+                    metrics.IncrementVideosImported("error", host);
                     continue;
                 }
                 if (string.IsNullOrWhiteSpace(meta.Title))
                 {
                     logger.LogWarning("Empty title in metadata for {Url}", url);
                     errors.Add($"Не удалось получить название: {url}");
+                    metrics.IncrementVideosImported("error", host);
                     continue;
                 }
 
@@ -131,6 +137,7 @@ namespace BMIRussian_ru.Pages.Admin
                 };
                 context.Videos.Add(video);
                 imported++;
+                metrics.IncrementVideosImported("success", host);
                 logger.LogInformation(
                     "Queued video for save: Title={Title}, SEOId={SeoId}, PublishDate={PublishDate:o}",
                     video.Title,
@@ -139,6 +146,15 @@ namespace BMIRussian_ru.Pages.Admin
             }
 
             return (imported, errors);
+        }
+
+        private static string ImportHost(string url)
+        {
+            if (IsYouTubeUrl(url))
+                return "youtube";
+            if (IsVkUrl(url))
+                return "vk";
+            return "other";
         }
 
         private static bool IsYouTubeUrl(string url)

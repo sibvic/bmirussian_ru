@@ -83,8 +83,10 @@ public class MeilisearchService : IMeilisearchService
 
     public async Task<VideoSearchResult> SearchVideosAsync(string query, int limit = 20, int offset = 0, CancellationToken cancellationToken = default)
     {
-        if (_client == null || string.IsNullOrWhiteSpace(query))
+        if (string.IsNullOrWhiteSpace(query))
             return new VideoSearchResult(Array.Empty<long>(), 0);
+        if (_client == null)
+            return new VideoSearchResult(Array.Empty<long>(), 0, Failed: true);
 
         try
         {
@@ -104,7 +106,7 @@ public class MeilisearchService : IMeilisearchService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to search videos in Meilisearch for query: {Query}", query);
-            return new VideoSearchResult(Array.Empty<long>(), 0);
+            return new VideoSearchResult(Array.Empty<long>(), 0, Failed: true);
         }
     }
 

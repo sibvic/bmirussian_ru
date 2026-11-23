@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
+using BMIRussian_ru.Data;
 using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Shop
@@ -13,7 +14,8 @@ namespace BMIRussian_ru.Pages.Shop
         TextToPngRenderer renderer,
         IMinioService minio,
         IOptions<ShopOptions> options,
-        ILogger<KeyTagModel> logger) : PageModel
+        ILogger<KeyTagModel> logger,
+        MetricsService metrics) : PageModel
     {
         public const string ModelName = "key_tag";
 
@@ -22,15 +24,23 @@ namespace BMIRussian_ru.Pages.Shop
         public string Text { get; set; } = "";
 
         public string? JobId { get; set; }
+        public List<StlJob> Jobs { get; set; } = [];
         public int MaxTextLength => options.Value.MaxTextLength;
         public bool IsConfigured => stlKafka.IsConfigured;
+        public bool IsStale(StlJob job) => store.IsStale(job);
 
-        private string? CurrentUserId =>
-            User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("id");
+        private long? CurrentUserId =>
+            long.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("id"), out var id)
+                ? id
+                : null;
 
-        public IActionResult OnGet(string? job)
+        public async Task<IActionResult> OnGetAsync(string? job, string? text)
         {
             JobId = job;
+            if (!string.IsNullOrEmpty(text))
+                Text = text;
+            if (CurrentUserId is { } userId)
+                Jobs = await store.ListByUserAsync(userId);
             return Page();
         }
 
@@ -41,6 +51,7 @@ namespace BMIRussian_ru.Pages.Shop
                 return NotFound();
 
             var png = renderer.Render(normalized, out _, out _);
+            metrics.IncrementStlPreviews();
             return File(png, "image/png");
         }
 
@@ -59,31 +70,39 @@ namespace BMIRussian_ru.Pages.Shop
                 return Page();
             }
 
-            var userId = CurrentUserId ?? "";
-            if (store.HasActiveJob(userId))
+            if (CurrentUserId is not { } userId)
+                return Forbid();
+            if (await store.HasActiveJobAsync(userId))
             {
                 ModelState.AddModelError(string.Empty, "У вас уже есть генерируемая модель. Дождитесь её завершения.");
+                Jobs = await store.ListByUserAsync(userId);
                 return Page();
             }
 
             var requestId = Guid.NewGuid().ToString("N");
-            store.Create(requestId, userId, normalized);
+            await store.CreateAsync(requestId, userId, ModelName, normalized);
             if (!await stlKafka.RequestGenerateAsync(requestId, ModelName, normalized))
             {
-                store.SetFailed(requestId, "Failed to enqueue generation request.");
+                await store.SetFailedAsync(requestId, "Failed to enqueue generation request.");
+                metrics.IncrementStlJobs(ModelName, "enqueue_failed");
                 ModelState.AddModelError(string.Empty, "Не удалось отправить задание на генерацию. Попробуйте позже.");
+                Jobs = await store.ListByUserAsync(userId);
                 return Page();
             }
 
+            metrics.IncrementStlJobs(ModelName, "enqueued");
             logger.LogInformation("STL generation {RequestId} enqueued by user {UserId}: {Text}", requestId, userId, normalized);
             return RedirectToPage(new { job = requestId });
         }
 
-        public IActionResult OnGetStatus(string? jobId)
+        public async Task<IActionResult> OnGetStatusAsync(string? jobId)
         {
-            var job = string.IsNullOrEmpty(jobId) ? null : store.Get(jobId);
-            if (job == null || job.OwnerId != CurrentUserId)
+            var job = string.IsNullOrEmpty(jobId) ? null : await store.GetAsync(jobId);
+            if (job == null || job.UserId != CurrentUserId)
                 return new JsonResult(new { status = "unknown" });
+
+            if (store.IsStale(job))
+                return new JsonResult(new { status = "failed", error = "задание не было выполнено вовремя" });
 
             return new JsonResult(new
             {
@@ -99,8 +118,8 @@ namespace BMIRussian_ru.Pages.Shop
 
         public async Task<IActionResult> OnGetDownloadAsync(string? jobId)
         {
-            var job = string.IsNullOrEmpty(jobId) ? null : store.Get(jobId);
-            if (job == null || job.OwnerId != CurrentUserId || job.Status != StlJobStatus.Done || job.ObjectName == null)
+            var job = string.IsNullOrEmpty(jobId) ? null : await store.GetAsync(jobId);
+            if (job == null || job.UserId != CurrentUserId || job.Status != StlJobStatus.Done || job.ObjectName == null)
                 return NotFound();
 
             var data = await minio.GetShopObjectAsync(job.ObjectName);
@@ -109,11 +128,13 @@ namespace BMIRussian_ru.Pages.Shop
                 logger.LogWarning("STL object {ObjectName} for job {RequestId} not found in storage", job.ObjectName, job.RequestId);
                 ModelState.AddModelError(string.Empty, "Файл не найден в хранилище. Сгенерируйте заново.");
                 JobId = job.RequestId;
+                Jobs = await store.ListByUserAsync(job.UserId);
                 return Page();
             }
 
             var slug = SeoIdHelper.FromTitle(job.Text).ToLowerInvariant();
             var fileName = string.IsNullOrEmpty(slug) ? "key_tag.stl" : $"key_tag_{slug}.stl";
+            metrics.IncrementStlDownloads(string.IsNullOrWhiteSpace(job.Model) ? ModelName : job.Model);
             return File(data, "model/stl", fileName);
         }
 

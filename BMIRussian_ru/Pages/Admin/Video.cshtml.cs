@@ -6,7 +6,7 @@ using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
-    public class VideoModel(ApplicationDbContext context, IMeilisearchService meilisearch) : PageModel
+    public class VideoModel(ApplicationDbContext context, IMeilisearchService meilisearch, MetricsService metrics) : PageModel
     {
         public const int PageSize = 20;
 
@@ -111,6 +111,7 @@ namespace BMIRussian_ru.Pages.Admin
                 context.Videos.Remove(video);
                 await context.SaveChangesAsync();
                 await meilisearch.DeleteVideoAsync(id);
+                metrics.IncrementVideosDeleted();
             }
             return RedirectToPage();
         }

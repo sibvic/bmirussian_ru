@@ -5,7 +5,7 @@ using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages
 {
-    public class VideosModel(ApplicationDbContext context, IMeilisearchService meilisearch) : PageModel
+    public class VideosModel(ApplicationDbContext context, IMeilisearchService meilisearch, MetricsService metrics) : PageModel
     {
         public const int PageSize = 15;
 
@@ -25,6 +25,9 @@ namespace BMIRussian_ru.Pages
             if (!string.IsNullOrWhiteSpace(SearchQuery))
             {
                 var searchResult = await meilisearch.SearchVideosAsync(SearchQuery, PageSize, (PageIndex - 1) * PageSize);
+                metrics.IncrementVideoSearches(searchResult.Failed
+                    ? "error"
+                    : searchResult.EstimatedTotalHits > 0 ? "hit" : "empty");
                 TotalCount = searchResult.EstimatedTotalHits;
 
                 if (searchResult.VideoIds.Count > 0)

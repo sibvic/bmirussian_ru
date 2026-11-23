@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using BMIRussian_ru.Data;
+using BMIRussian_ru.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Sibvic.AuthLib;
@@ -14,7 +15,8 @@ namespace BMIRussian_ru.Pages
         ILogger<LoginTelegramBotModel> logger,
         AuthLogic authLogic,
         ApplicationDbContext context,
-        IConfiguration configuration) : PageModel
+        IConfiguration configuration,
+        MetricsService metrics) : PageModel
     {
         public string? ErrorMessage { get; set; }
         public List<AgreementViewModel>? UnacceptedAgreements { get; set; }
@@ -55,6 +57,7 @@ namespace BMIRussian_ru.Pages
                 {
                     var jwtToken = authLogic.AuthenticateFromTelegramBot(telegramid, token);
                     SetJwtCookie(jwtToken);
+                    metrics.IncrementLogins("telegram");
                     return RedirectToPage("/Index");
                 }
                 catch (AgreementsNotAcceptedException)
@@ -167,6 +170,7 @@ namespace BMIRussian_ru.Pages
                     {
                         var jwtToken = authLogic.AuthenticateFromTelegramBot(telegramid, token);
                         SetJwtCookie(jwtToken);
+                        metrics.IncrementLogins("telegram");
                         return RedirectToPage("/Index");
                     }
                     catch (InvalidTokenException)
@@ -197,17 +201,19 @@ namespace BMIRussian_ru.Pages
                     return Page();
                 }
 
-                // Accept all selected agreements
+                var accepted = 0;
                 foreach (var agreementId in SelectedAgreementIds)
                 {
                     var agreement = agreementsToSign.FirstOrDefault(a => a.Id == agreementId);
                     if (agreement != null)
                     {
                         authLogic.AcceptAgreement(user, agreement);
+                        accepted++;
                     }
                 }
 
                 await context.SaveChangesAsync();
+                metrics.IncrementAgreementsAccepted(accepted);
 
                 // Check again if all agreements are now accepted
                 var remainingAgreements = authLogic.GetAgreementsToSign(user);
@@ -228,6 +234,7 @@ namespace BMIRussian_ru.Pages
                 {
                     var jwtToken = authLogic.GenerateToken(user);
                     SetJwtCookie(jwtToken);
+                    metrics.IncrementLogins("telegram");
                     return RedirectToPage("/Index");
                 }
                 catch (AgreementsNotAcceptedException)
@@ -315,6 +322,8 @@ namespace BMIRussian_ru.Pages
                 ErrorMessage = "Этот аккаунт Telegram уже привязан к другому пользователю.";
                 return Page();
             }
+
+            metrics.IncrementCredentialsLinked("telegram");
 
             try
             {

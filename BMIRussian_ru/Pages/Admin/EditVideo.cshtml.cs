@@ -8,7 +8,7 @@ using BMIRussian_ru.Services;
 
 namespace BMIRussian_ru.Pages.Admin
 {
-    public class EditVideoModel(ApplicationDbContext context, IMeilisearchService meilisearch) : PageModel
+    public class EditVideoModel(ApplicationDbContext context, IMeilisearchService meilisearch, MetricsService metrics) : PageModel
     {
         [BindProperty]
         public EditVideoInput Input { get; set; } = new();
@@ -54,6 +54,8 @@ namespace BMIRussian_ru.Pages.Admin
                 return Page();
             }
 
+            var becamePublished = video.Status != VideoStatus.Published && Input.Status == VideoStatus.Published;
+
             video.Title = Input.Title;
             video.SEOId = SeoIdHelper.FromTitle(Input.Title);
             video.Description = Input.Description;
@@ -82,6 +84,8 @@ namespace BMIRussian_ru.Pages.Admin
             }
 
             await context.SaveChangesAsync();
+            if (becamePublished)
+                metrics.IncrementVideosPublished();
             if (video.Status == VideoStatus.Published)
                 await meilisearch.IndexVideoAsync(video, null);
             else

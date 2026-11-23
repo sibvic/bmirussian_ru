@@ -10,11 +10,13 @@ namespace BMIRussian_ru.Services;
 /// </summary>
 public class StlResultConsumerService(
     IOptions<ShopKafkaOptions> options,
-    StlJobStore store,
+    IServiceScopeFactory scopeFactory,
+    MetricsService metrics,
     ILogger<StlResultConsumerService> logger) : BackgroundService
 {
     private readonly ShopKafkaOptions _options = options?.Value ?? new ShopKafkaOptions();
-    private readonly StlJobStore _store = store ?? throw new ArgumentNullException(nameof(store));
+    private readonly IServiceScopeFactory _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+    private readonly MetricsService _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
     private readonly ILogger<StlResultConsumerService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -62,11 +64,17 @@ public class StlResultConsumerService(
                             var msg = JsonConvert.DeserializeObject<StlResultMessage>(value);
                             _logger.LogInformation("STL generated {RequestId}", msg?.RequestId);
                             if (msg != null && !string.IsNullOrEmpty(msg.RequestId))
-                                _store.SetDone(msg.RequestId, msg.ObjectName ?? "");
+                            {
+                                await using var scope = _scopeFactory.CreateAsyncScope();
+                                var store = scope.ServiceProvider.GetRequiredService<StlJobStore>();
+                                var job = await store.SetDoneAsync(msg.RequestId, msg.ObjectName ?? "");
+                                if (job != null)
+                                    _metrics.IncrementStlJobs(job.Model, "done");
+                            }
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "Failed to deserialize StlResult: {Value}", value);
+                            _logger.LogWarning(ex, "Failed to handle StlResult: {Value}", value);
                         }
                     }
                     else if (key == "StlFailed")
@@ -76,11 +84,17 @@ public class StlResultConsumerService(
                             var msg = JsonConvert.DeserializeObject<StlFailedMessage>(value);
                             _logger.LogInformation("STL generation failed {RequestId}", msg?.RequestId);
                             if (msg != null && !string.IsNullOrEmpty(msg.RequestId))
-                                _store.SetFailed(msg.RequestId, msg.Error ?? "Unknown error");
+                            {
+                                await using var scope = _scopeFactory.CreateAsyncScope();
+                                var store = scope.ServiceProvider.GetRequiredService<StlJobStore>();
+                                var job = await store.SetFailedAsync(msg.RequestId, msg.Error ?? "Unknown error");
+                                if (job != null)
+                                    _metrics.IncrementStlJobs(job.Model, "failed");
+                            }
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "Failed to deserialize StlFailed: {Value}", value);
+                            _logger.LogWarning(ex, "Failed to handle StlFailed: {Value}", value);
                         }
                     }
                 }

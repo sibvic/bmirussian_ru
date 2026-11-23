@@ -25,4 +25,4 @@ public interface IMeilisearchService
     Task<VideoSearchResult> SearchVideosAsync(string query, int limit = 50, int offset = 0, CancellationToken cancellationToken = default);
 }
 
-public record VideoSearchResult(IReadOnlyList<long> VideoIds, int EstimatedTotalHits);
+public record VideoSearchResult(IReadOnlyList<long> VideoIds, int EstimatedTotalHits, bool Failed = false);

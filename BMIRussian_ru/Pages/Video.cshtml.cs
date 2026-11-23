@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BMIRussian_ru.Data;
+using BMIRussian_ru.Services;
 using Sibvic.AuthLib;
 
 namespace BMIRussian_ru.Pages
 {
-    public class VideoModel(ApplicationDbContext context) : PageModel
+    public class VideoModel(ApplicationDbContext context, MetricsService metrics) : PageModel
     {
         public Video? Video { get; set; }
 
@@ -33,6 +34,7 @@ namespace BMIRussian_ru.Pages
             if (video == null)
                 return NotFound();
 
+            metrics.IncrementVideoViews();
             Video = video;
 
             var urls = video.VideoUrls?

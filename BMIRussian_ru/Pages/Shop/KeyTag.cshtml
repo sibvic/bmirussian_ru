@@ -57,6 +57,58 @@
                     Не удалось сгенерировать модель: <span id="keytag-error"></span>
                 </div>
             </div>
+
+            @if (Model.Jobs.Count > 0)
+            {
+                <h2 class="h6 mt-5 mb-3">Мои метки</h2>
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>Текст</th>
+                            <th>Дата</th>
+                            <th>Статус</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var job in Model.Jobs)
+                        {
+                            <tr>
+                                <td>@job.Text</td>
+                                <td>@job.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>
+                                    @if (Model.IsStale(job))
+                                    {
+                                        <span class="text-muted">Просрочено</span>
+                                    }
+                                    else
+                                    {
+                                        switch (job.Status)
+                                        {
+                                            case BMIRussian_ru.Data.StlJobStatus.Done:
+                                                <span class="text-success">Готово</span>
+                                                break;
+                                            case BMIRussian_ru.Data.StlJobStatus.Failed:
+                                                <span class="text-danger">Ошибка</span>
+                                                break;
+                                            default:
+                                                <span class="text-info">В очереди</span>
+                                                break;
+                                        }
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (job.Status == BMIRussian_ru.Data.StlJobStatus.Done)
+                                    {
+                                        <a href="?handler=Download&jobId=@job.RequestId" class="btn btn-sm btn-outline-primary">Скачать</a>
+                                    }
+                                    <a asp-page="/Shop/KeyTag" asp-route-text="@job.Text" class="btn btn-sm btn-outline-secondary">Повторить</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
         </div>
     </div>
 </div>

@@ -11,10 +11,12 @@ namespace BMIRussian_ru.Services;
 public class MediaInfoResultConsumerService(
     IOptions<DownloaderKafkaOptions> options,
     MediaInfoResultStore store,
+    MetricsService metrics,
     ILogger<MediaInfoResultConsumerService> logger) : BackgroundService
 {
     private readonly DownloaderKafkaOptions _options = options?.Value ?? new DownloaderKafkaOptions();
     private readonly MediaInfoResultStore _store = store ?? throw new ArgumentNullException(nameof(store));
+    private readonly MetricsService _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
     private readonly ILogger<MediaInfoResultConsumerService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -70,11 +72,17 @@ public class MediaInfoResultConsumerService(
                                     Description = msg.Description,
                                     PublishDate = msg.PublishDate
                                 });
+                                _metrics.IncrementMediaInfoResults("ok");
+                            }
+                            else
+                            {
+                                _metrics.IncrementMediaInfoResults("failed");
                             }
                         }
                         catch (Exception ex)
                         {
                             _logger.LogWarning(ex, "Failed to deserialize MediaInfoResult: {Value}", value);
+                            _metrics.IncrementMediaInfoResults("failed");
                         }
                     }
                     else if (key == "MediaInfoFailed")
@@ -85,10 +93,12 @@ public class MediaInfoResultConsumerService(
                             _logger.LogInformation("Video failed to parse {RequestId}", msg.RequestId);
                             if (msg != null && !string.IsNullOrEmpty(msg.RequestId))
                                 _store.SetFailed(msg.RequestId, msg.Error ?? "Unknown error");
+                            _metrics.IncrementMediaInfoResults("failed");
                         }
                         catch (Exception ex)
                         {
                             _logger.LogWarning(ex, "Failed to deserialize MediaInfoFailed: {Value}", value);
+                            _metrics.IncrementMediaInfoResults("failed");
                         }
                     }
                 }

@@ -23,7 +23,8 @@ namespace BMIRussian_ru.Pages
         IHttpClientFactory httpClientFactory,
         AuthLogic authLogic,
         ApplicationDbContext dbContext,
-        ILogger<LoginModel> logger) : PageModel
+        ILogger<LoginModel> logger,
+        MetricsService metrics) : PageModel
     {
         /// <summary>
         /// Optional URL to the Telegram bot for login (e.g. https://t.me/YourLoginBot).
@@ -192,6 +193,8 @@ namespace BMIRussian_ru.Pages
 
             var linkUser = await TryResolveLinkUserAsync(cancellationToken);
             AuthUser? user;
+            var registered = false;
+            var linkedCredential = false;
 
             if (linkUser != null)
             {
@@ -207,6 +210,7 @@ namespace BMIRussian_ru.Pages
                     return RedirectToLoginWithReturn();
                 }
 
+                linkedCredential = true;
                 user = linkUser;
             }
             else
@@ -224,6 +228,7 @@ namespace BMIRussian_ru.Pages
                         hash: null,
                         CredentialsSource.VKAccount,
                         cancellationToken);
+                    registered = user != null;
                 }
             }
 
@@ -232,6 +237,8 @@ namespace BMIRussian_ru.Pages
                 TempData["LoginError"] = "Не удалось зарегистрировать пользователя.";
                 return RedirectToLoginWithReturn();
             }
+
+            RecordAuthMetrics("vk", registered, linkedCredential);
 
             try
             {
@@ -289,6 +296,8 @@ namespace BMIRussian_ru.Pages
 
             var linkUser = await TryResolveLinkUserAsync(cancellationToken);
             AuthUser? user;
+            var registered = false;
+            var linkedCredential = false;
 
             if (linkUser != null)
             {
@@ -304,6 +313,7 @@ namespace BMIRussian_ru.Pages
                     return RedirectToLoginWithReturn();
                 }
 
+                linkedCredential = true;
                 user = linkUser;
             }
             else
@@ -321,6 +331,7 @@ namespace BMIRussian_ru.Pages
                         hash: null,
                         CredentialsSource.VKAccount,
                         cancellationToken);
+                    registered = user != null;
                 }
             }
 
@@ -329,6 +340,8 @@ namespace BMIRussian_ru.Pages
                 TempData["LoginError"] = "Не удалось зарегистрировать пользователя.";
                 return RedirectToLoginWithReturn();
             }
+
+            RecordAuthMetrics("vk", registered, linkedCredential);
 
             try
             {
@@ -386,6 +399,8 @@ namespace BMIRussian_ru.Pages
 
             var linkUser = await TryResolveLinkUserAsync(cancellationToken);
             AuthUser? user;
+            var registered = false;
+            var linkedCredential = false;
 
             if (linkUser != null)
             {
@@ -401,6 +416,7 @@ namespace BMIRussian_ru.Pages
                     return RedirectToLoginWithReturn();
                 }
 
+                linkedCredential = true;
                 user = linkUser;
             }
             else
@@ -418,6 +434,7 @@ namespace BMIRussian_ru.Pages
                         hash: null,
                         CredentialsSource.GoogleAccount,
                         cancellationToken);
+                    registered = user != null;
                 }
             }
 
@@ -426,6 +443,8 @@ namespace BMIRussian_ru.Pages
                 TempData["LoginError"] = "Не удалось зарегистрировать пользователя.";
                 return RedirectToLoginWithReturn();
             }
+
+            RecordAuthMetrics("google", registered, linkedCredential);
 
             try
             {
@@ -453,6 +472,16 @@ namespace BMIRussian_ru.Pages
                 TempData["LoginError"] = "Произошла ошибка при входе. Попробуйте позже.";
                 return RedirectToLoginWithReturn();
             }
+        }
+
+        private void RecordAuthMetrics(string source, bool registered, bool linked)
+        {
+            if (registered)
+                metrics.IncrementRegisteredUsers(source);
+            else if (linked)
+                metrics.IncrementCredentialsLinked(source);
+            else
+                metrics.IncrementLogins(source);
         }
 
         private IActionResult RedirectToLoginWithReturn()

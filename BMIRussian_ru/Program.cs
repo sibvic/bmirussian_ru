@@ -51,7 +51,7 @@ builder.Services.Configure<ShopKafkaOptions>(o =>
 });
 builder.Services.Configure<ShopOptions>(
     builder.Configuration.GetSection(ShopOptions.SectionName));
-builder.Services.AddSingleton<StlJobStore>();
+builder.Services.AddScoped<StlJobStore>();
 builder.Services.AddSingleton<StlKafkaService>();
 builder.Services.AddHostedService<StlResultConsumerService>();
 builder.Services.AddSingleton<TextToPngRenderer>();

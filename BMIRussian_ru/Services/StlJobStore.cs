@@ -1,79 +1,79 @@
-using System.Collections.Concurrent;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using BMIRussian_ru.Data;
 
 namespace BMIRussian_ru.Services;
 
-public enum StlJobStatus
-{
-    Queued,
-    Done,
-    Failed
-}
-
-public class StlJob
-{
-    public string RequestId { get; set; } = "";
-    public string OwnerId { get; set; } = "";
-    public string Text { get; set; } = "";
-    public StlJobStatus Status { get; set; } = StlJobStatus.Queued;
-    public string? ObjectName { get; set; }
-    public string? Error { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-}
-
 /// <summary>
-/// In-memory store for STL generation jobs. Producer creates jobs; result consumer updates them;
-/// pages poll status and download via ObjectName.
+/// EF-backed store for STL generation jobs. The web app creates jobs (Queued);
+/// the StlWorker result consumer marks them Done/Failed.
 /// </summary>
-public class StlJobStore(IOptions<ShopOptions> options)
+public class StlJobStore(ApplicationDbContext context, IOptions<ShopOptions> options, MetricsService metrics)
 {
-    private readonly ConcurrentDictionary<string, StlJob> _jobs = new();
-    private readonly TimeSpan _ttl = TimeSpan.FromHours(Math.Max(1, options.Value.JobRetentionHours));
+    private TimeSpan StaleTimeout => TimeSpan.FromMinutes(Math.Max(1, options.Value.StaleTimeoutMinutes));
 
-    public StlJob Create(string requestId, string ownerId, string text)
+    public async Task<StlJob> CreateAsync(string requestId, long userId, string model, string text)
     {
-        Sweep();
-        var job = new StlJob { RequestId = requestId, OwnerId = ownerId, Text = text };
-        _jobs[requestId] = job;
+        var job = new StlJob
+        {
+            RequestId = requestId,
+            UserId = userId,
+            Model = model,
+            Text = text,
+            Status = StlJobStatus.Queued,
+            CreatedAt = DateTime.UtcNow
+        };
+        context.StlJobs.Add(job);
+        await context.SaveChangesAsync();
         return job;
     }
 
-    public StlJob? Get(string requestId)
+    public Task<StlJob?> GetAsync(string requestId) =>
+        context.StlJobs.FirstOrDefaultAsync(j => j.RequestId == requestId);
+
+    /// <summary>True when the user has a job still in queue (stale jobs don't count).</summary>
+    public Task<bool> HasActiveJobAsync(long userId)
     {
-        return _jobs.TryGetValue(requestId, out var job) ? job : null;
+        var cutoff = DateTime.UtcNow - StaleTimeout;
+        return context.StlJobs.AnyAsync(j =>
+            j.UserId == userId && j.Status == StlJobStatus.Queued && j.CreatedAt > cutoff);
     }
 
-    public bool HasActiveJob(string ownerId)
+    /// <summary>True when a queued job has waited longer than the configured stale timeout.</summary>
+    public bool IsStale(StlJob job) =>
+        job.Status == StlJobStatus.Queued && job.CreatedAt <= DateTime.UtcNow - StaleTimeout;
+
+    public async Task<StlJob?> SetDoneAsync(string requestId, string objectName)
     {
-        Sweep();
-        return _jobs.Values.Any(j => j.OwnerId == ownerId && j.Status == StlJobStatus.Queued);
+        var job = await GetAsync(requestId);
+        if (job == null) return null;
+        job.Status = StlJobStatus.Done;
+        job.ObjectName = objectName;
+        job.CompletedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync();
+        metrics.ObserveStlJobDuration(job.Model, "done", DurationSeconds(job));
+        return job;
     }
 
-    public void SetDone(string requestId, string objectName)
+    public async Task<StlJob?> SetFailedAsync(string requestId, string error)
     {
-        if (_jobs.TryGetValue(requestId, out var job))
-        {
-            job.Status = StlJobStatus.Done;
-            job.ObjectName = objectName;
-        }
+        var job = await GetAsync(requestId);
+        if (job == null) return null;
+        job.Status = StlJobStatus.Failed;
+        job.Error = error;
+        job.CompletedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync();
+        metrics.ObserveStlJobDuration(job.Model, "failed", DurationSeconds(job));
+        return job;
     }
 
-    public void SetFailed(string requestId, string error)
-    {
-        if (_jobs.TryGetValue(requestId, out var job))
-        {
-            job.Status = StlJobStatus.Failed;
-            job.Error = error;
-        }
-    }
+    private static double DurationSeconds(StlJob job) =>
+        ((job.CompletedAt ?? DateTime.UtcNow) - job.CreatedAt).TotalSeconds;
 
-    private void Sweep()
-    {
-        var cutoff = DateTime.UtcNow - _ttl;
-        foreach (var pair in _jobs)
-        {
-            if (pair.Value.CreatedAt < cutoff)
-                _jobs.TryRemove(pair.Key, out _);
-        }
-    }
+    public Task<List<StlJob>> ListByUserAsync(long userId, int count = 50) =>
+        context.StlJobs
+            .Where(j => j.UserId == userId)
+            .OrderByDescending(j => j.CreatedAt)
+            .Take(count)
+            .ToListAsync();
 }

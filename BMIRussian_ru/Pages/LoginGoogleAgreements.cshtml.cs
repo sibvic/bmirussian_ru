@@ -13,7 +13,8 @@ namespace BMIRussian_ru.Pages
         AuthLogic authLogic,
         ApplicationDbContext context,
         IConfiguration configuration,
-        ILogger<LoginGoogleAgreementsModel> logger) : PageModel
+        ILogger<LoginGoogleAgreementsModel> logger,
+        MetricsService metrics) : PageModel
     {
         public const string PendingGoogleUserIdSessionKey = "pending_google_user_id";
 
@@ -113,14 +114,19 @@ namespace BMIRussian_ru.Pages
                 return Page();
             }
 
+            var accepted = 0;
             foreach (var agreementId in SelectedAgreementIds)
             {
                 var agreement = agreementsToSign.FirstOrDefault(a => a.Id == agreementId);
                 if (agreement != null)
+                {
                     authLogic.AcceptAgreement(user, agreement);
+                    accepted++;
+                }
             }
 
             await context.SaveChangesAsync();
+            metrics.IncrementAgreementsAccepted(accepted);
 
             var remainingAgreements = authLogic.GetAgreementsToSign(user);
             if (remainingAgreements != null && remainingAgreements.Any())

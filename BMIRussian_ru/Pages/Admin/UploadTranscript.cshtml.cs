@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BMIRussian_ru.Pages.Admin;
 
-public class UploadTranscriptModel(ApplicationDbContext context, IMinioService minio, IMeilisearchService meilisearch) : PageModel
+public class UploadTranscriptModel(ApplicationDbContext context, IMinioService minio, IMeilisearchService meilisearch, MetricsService metrics) : PageModel
 {
     public Video? Video { get; set; }
 
@@ -57,6 +57,7 @@ public class UploadTranscriptModel(ApplicationDbContext context, IMinioService m
 
         Video.HasTranscript = true;
         await context.SaveChangesAsync();
+        metrics.IncrementTranscriptsUploaded();
 
         if (Video.Status == VideoStatus.Published)
         {

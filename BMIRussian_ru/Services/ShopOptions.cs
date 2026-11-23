@@ -6,8 +6,8 @@ public class ShopOptions
 
     /// <summary>Max length of the engraving text.</summary>
     public int MaxTextLength { get; set; } = 20;
-    /// <summary>How long finished/failed jobs are kept for status/download.</summary>
-    public int JobRetentionHours { get; set; } = 2;
+    /// <summary>A queued job older than this many minutes is treated as abandoned.</summary>
+    public int StaleTimeoutMinutes { get; set; } = 30;
     /// <summary>Font used to render the engraving text PNG.</summary>
     public string FontPath { get; set; } = "Assets/Fonts/Danger.ttf";
     /// <summary>Font size in pixels for the engraving text.</summary>

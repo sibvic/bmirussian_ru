@@ -1,0 +1,25 @@
+@page
+@model BMIRussian_ru.Pages.ShopModel
+@{
+    ViewData["Title"] = "Магазин";
+}
+
+<div class="container mt-4">
+    <h1 class="h4 mb-4">Магазин 3D-моделей</h1>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+            <div class="card h-100">
+                <img src="~/images/shop/key_tag.png" class="card-img-top" alt="Метка на ключи" />
+                <div class="card-body">
+                    <h5 class="card-title">Метка на ключи</h5>
+                    <p class="card-text text-muted small">
+                        Брелок 70×23×3 мм с гравировкой произвольного текста.
+                        STL-файл генерируется под ваш текст — можно сразу отправлять на печать.
+                    </p>
+                    <a asp-page="/Shop/KeyTag" class="btn btn-primary">Настроить</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

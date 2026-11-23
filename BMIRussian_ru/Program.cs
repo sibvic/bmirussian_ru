@@ -26,17 +26,35 @@ builder.Services.AddScoped<UserWithBalanceContext>(serviceProvider =>
     serviceProvider.GetRequiredService<ApplicationDbContext>());
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.Configure<KafkaMessageSenderOptions>(
-    builder.Configuration.GetSection("KafkaMessageSender"));
+var kafkaSection = builder.Configuration.GetSection("Kafka");
+builder.Services.Configure<KafkaMessageSenderOptions>(o =>
+{
+    kafkaSection.Bind(o);
+    builder.Configuration.GetSection("KafkaMessageSender").Bind(o);
+});
 builder.Services.AddSingleton<KafkaMessageSender>();
-builder.Services.Configure<DownloaderKafkaOptions>(
-    builder.Configuration.GetSection("DownloaderKafka"));
+builder.Services.Configure<DownloaderKafkaOptions>(o =>
+{
+    kafkaSection.Bind(o);
+    builder.Configuration.GetSection("DownloaderKafka").Bind(o);
+});
 builder.Services.Configure<MeilisearchOptions>(
     builder.Configuration.GetSection(MeilisearchOptions.SectionName));
 builder.Services.AddSingleton<IMeilisearchService, MeilisearchService>();
 builder.Services.Configure<MinioOptions>(
     builder.Configuration.GetSection(MinioOptions.SectionName));
 builder.Services.AddSingleton<IMinioService, MinioService>();
+builder.Services.Configure<ShopKafkaOptions>(o =>
+{
+    kafkaSection.Bind(o);
+    builder.Configuration.GetSection(ShopKafkaOptions.SectionName).Bind(o);
+});
+builder.Services.Configure<ShopOptions>(
+    builder.Configuration.GetSection(ShopOptions.SectionName));
+builder.Services.AddSingleton<StlJobStore>();
+builder.Services.AddSingleton<StlKafkaService>();
+builder.Services.AddHostedService<StlResultConsumerService>();
+builder.Services.AddSingleton<TextToPngRenderer>();
 builder.Services.AddSingleton<MediaInfoResultStore>();
 builder.Services.AddSingleton<IMediaInfoKafkaService, MediaInfoKafkaService>();
 builder.Services.AddHostedService<MediaInfoResultConsumerService>();
@@ -117,6 +135,7 @@ builder.Services.AddControllers();
 builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeFolder("/Admin", "Admin");
+    options.Conventions.AuthorizeFolder("/Shop");
 });
 builder.Services.AddHttpClient();
 

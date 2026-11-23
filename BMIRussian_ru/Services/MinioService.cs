@@ -62,4 +62,31 @@ public class MinioService(Microsoft.Extensions.Options.IOptions<MinioOptions> op
         }
         return content;
     }
+
+    public async Task<byte[]?> GetShopObjectAsync(string objectName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(objectName) || !objectName.StartsWith("shop/", StringComparison.Ordinal))
+            return null;
+
+        var client = CreateClient();
+        byte[]? content = null;
+        try
+        {
+            var getArgs = new GetObjectArgs()
+                .WithBucket(_bucket)
+                .WithObject(objectName)
+                .WithCallbackStream(s =>
+                {
+                    using var ms = new MemoryStream();
+                    s.CopyTo(ms);
+                    content = ms.ToArray();
+                });
+            await client.GetObjectAsync(getArgs, cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            return null;
+        }
+        return content;
+    }
 }

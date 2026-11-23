@@ -29,6 +29,17 @@
     <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
     <PackageReference Include="Markdig" Version="1.3.2" />
     <PackageReference Include="Sibvic.UserWithBalanceLib" Version="10.3.1" />
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\Assets\3d\key_tag.scad" Link="Assets\3d\key_tag.scad">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Assets\Fonts\Danger.ttf" Link="Assets\Fonts\Danger.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

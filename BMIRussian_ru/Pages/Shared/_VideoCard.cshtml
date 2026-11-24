@@ -35,7 +35,11 @@
         <div class="bmi-card-body">
             <h6 class="bmi-card-title">@Model.Title</h6>
             <div class="bmi-card-meta">
-                <partial name="Shared/_VideoMeta" model="Model" />
+                @Model.PublishDate.ToString("dd.MM.yyyy")
+                @if (Model.Tags?.Any() == true)
+                {
+                    <span> · @string.Join(", ", Model.Tags.OrderBy(t => t.TagText).Select(t => t.TagText))</span>
+                }
             </div>
         </div>
     </a>

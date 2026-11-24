@@ -102,6 +102,31 @@ a:hover {
   color: #fff;
 }
 
+.bmi-btn-sm {
+  padding: .5em 1.6em;
+  font-size: .82rem;
+}
+
+.bmi-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: .6em;
+  background: transparent;
+  color: var(--bmi-text);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: .85em 2.2em;
+  border: 1px solid var(--bmi-border);
+  text-decoration: none;
+  transition: border-color .15s ease, color .15s ease;
+}
+
+.bmi-btn-outline:hover, .bmi-btn-outline:focus {
+  border-color: var(--bmi-red);
+  color: var(--bmi-red);
+}
+
 /* ---------- Header ---------- */
 
 .bmi-header {
@@ -308,7 +333,7 @@ a:hover {
   transition: transform .15s ease, border-color .15s ease;
 }
 
-.bmi-card:hover, .bmi-card:focus {
+a.bmi-card:hover, a.bmi-card:focus {
   transform: translateY(-3px);
   border-color: var(--bmi-red);
   color: var(--bmi-text);
@@ -378,8 +403,14 @@ a:hover {
   overflow: hidden;
 }
 
-.bmi-card:hover .bmi-card-title {
+a.bmi-card:hover .bmi-card-title {
   color: var(--bmi-red);
+}
+
+.bmi-card-text {
+  color: var(--bmi-muted);
+  font-size: .85rem;
+  line-height: 1.45;
 }
 
 .bmi-card-meta {

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace BMIRussian_ru.Services
@@ -28,6 +29,9 @@ namespace BMIRussian_ru.Services
             var normalized = TryNormalizeYouTubeUrl(url);
             if (normalized != null)
                 return normalized;
+            normalized = TryNormalizeVkVideoUrl(url);
+            if (normalized != null)
+                return normalized;
             var isVk = url.Contains("vk.com", StringComparison.OrdinalIgnoreCase)
                        || url.Contains("vk.ru", StringComparison.OrdinalIgnoreCase);
             if (!isVk || !url.Contains("video_ext.php", StringComparison.OrdinalIgnoreCase))
@@ -43,6 +47,22 @@ namespace BMIRussian_ru.Services
                 return url;
             var ownerId = Math.Abs(oid);
             return $"https://{uri.Host}/video-{ownerId}_{id}";
+        }
+
+        /// <summary>Converts vkvideo.ru/vkvideo.com video watch URLs (/video-oid_id) to canonical https://vk.com/video-oid_id form so VK embeds work.</summary>
+        private static string? TryNormalizeVkVideoUrl(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Host == null)
+                return null;
+            if (!uri.Host.Equals("vkvideo.ru", StringComparison.OrdinalIgnoreCase)
+                && !uri.Host.Equals("www.vkvideo.ru", StringComparison.OrdinalIgnoreCase)
+                && !uri.Host.Equals("vkvideo.com", StringComparison.OrdinalIgnoreCase)
+                && !uri.Host.Equals("www.vkvideo.com", StringComparison.OrdinalIgnoreCase))
+                return null;
+            var match = Regex.Match(uri.AbsolutePath.TrimStart('/'), @"^video-?\d+_\d+", RegexOptions.IgnoreCase);
+            if (!match.Success)
+                return null;
+            return $"https://vk.com/{match.Value}";
         }
 
         /// <summary>Normalizes YouTube URLs (embed, watch, youtu.be) to canonical https://www.youtube.com/watch?v=VIDEO_ID</summary>

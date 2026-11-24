@@ -81,7 +81,9 @@ namespace BMIRussian_ru.Pages
             if (string.IsNullOrEmpty(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Host == null)
                 return null;
             if (!uri.Host.Contains("vk.com", StringComparison.OrdinalIgnoreCase)
-                && !uri.Host.Contains("vk.ru", StringComparison.OrdinalIgnoreCase))
+                && !uri.Host.Contains("vk.ru", StringComparison.OrdinalIgnoreCase)
+                && !uri.Host.Contains("vkvideo.ru", StringComparison.OrdinalIgnoreCase)
+                && !uri.Host.Contains("vkvideo.com", StringComparison.OrdinalIgnoreCase))
                 return null;
 
             // Path: /video-45671298_456241811 or /video45671298_456241811

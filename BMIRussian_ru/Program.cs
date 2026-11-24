@@ -58,6 +58,8 @@ builder.Services.AddSingleton<TextToPngRenderer>();
 builder.Services.AddSingleton<MediaInfoResultStore>();
 builder.Services.AddSingleton<IMediaInfoKafkaService, MediaInfoKafkaService>();
 builder.Services.AddHostedService<MediaInfoResultConsumerService>();
+builder.Services.AddScoped<VideoImportService>();
+builder.Services.AddHostedService<VideoImportConsumerService>();
 builder.Services.AddSingleton<MetricsService>();
 builder.Services.AddHostedService<LoginService>();
 

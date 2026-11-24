@@ -33,7 +33,7 @@ namespace BMIRussian_ru.Pages
             if (string.IsNullOrWhiteSpace(markdown))
                 return null;
 
-            var text = Regex.Replace(Markdown.ToPlainText(markdown), "<[^>]*>", " ");
+            var text = Regex.Replace(Markdown.ToPlainText(markdown), @"</?[a-zA-Z][a-zA-Z0-9-]*(\s[^<>]*)?/?>", " ");
             text = Regex.Replace(text, @"\s+", " ").Trim();
             if (text.Length <= maxLength)
                 return text;

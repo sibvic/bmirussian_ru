@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+using Markdig;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +11,7 @@ namespace BMIRussian_ru.Pages
     {
         public IList<Video> LatestVideos { get; set; } = new List<Video>();
         public Video? FeaturedVideo { get; set; }
+        public string? FeaturedSummary => Summarize(FeaturedVideo?.Description, 220);
         public IEnumerable<Video> GridVideos =>
             FeaturedVideo == null ? LatestVideos : LatestVideos.Where(v => v.Id != FeaturedVideo.Id);
 
@@ -23,6 +26,22 @@ namespace BMIRussian_ru.Pages
 
             FeaturedVideo = LatestVideos.FirstOrDefault(v => !string.IsNullOrEmpty(v.ImageUrl))
                 ?? LatestVideos.FirstOrDefault();
+        }
+
+        public static string? Summarize(string? markdown, int maxLength)
+        {
+            if (string.IsNullOrWhiteSpace(markdown))
+                return null;
+
+            var text = Regex.Replace(Markdown.ToPlainText(markdown), @"<!--.*?-->|</?[a-zA-Z][a-zA-Z0-9-]*(\s[^<>]*)?/?>", " ", RegexOptions.Singleline);
+            text = Regex.Replace(text, @"\s+", " ").Trim();
+            if (text.Length == 0)
+                return null;
+            if (text.Length <= maxLength)
+                return text;
+
+            var cut = text.LastIndexOf(' ', maxLength);
+            return text[..(cut > 0 ? cut : maxLength)].TrimEnd(' ', ',', '.', ';', ':', '—', '-') + "…";
         }
     }
 }

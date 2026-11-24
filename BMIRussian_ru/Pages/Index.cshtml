@@ -2,20 +2,43 @@
 @model IndexModel
 @{
     ViewData["Title"] = "BMIRussian. Автокультура и автоспорт на русском!";
+    ViewData["FullBleed"] = true;
 }
 
-<form method="get" asp-page="/Videos" class="mb-4 d-flex gap-2">
-    <input type="search" name="q" class="form-control" placeholder="Поиск видео..." />
-    <button type="submit" class="btn btn-primary">Искать</button>
-</form>
+@if (Model.FeaturedVideo != null)
+{
+    <section class="bmi-hero">
+        @if (!string.IsNullOrEmpty(Model.FeaturedVideo.ImageUrl))
+        {
+            <img class="bmi-hero-bg" src="@Model.FeaturedVideo.ImageUrl" alt="" />
+        }
+        <div class="container bmi-hero-content">
+            <span class="bmi-chip">Главное</span>
+            <h1>Автокультура<br />и автоспорт —<br />на русском</h1>
+            <p class="bmi-hero-sub">Переводим, снимаем и рассказываем о машинах, которые нас вдохновляют.</p>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <a class="bmi-btn" asp-page="/Video" asp-route-seoId="@(Model.FeaturedVideo.SEOId ?? Model.FeaturedVideo.Id.ToString())">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 3.8v16.4L20 12z" /></svg>
+                    Смотреть видео
+                </a>
+                <a class="bmi-hero-about" asp-page="/About">О проекте</a>
+            </div>
+        </div>
+    </section>
+}
 
 @if (Model.LatestVideos.Any())
 {
-    <h4><a asp-page="/Videos" class="text-decoration-none text-dark">Последние видео</a></h4>
-    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
-        @foreach (var video in Model.LatestVideos)
-        {
-            <partial name="Shared/_VideoCard" model="video" />
-        }
-    </div>
+    <section class="bmi-section container">
+        <div class="bmi-section-header">
+            <h2 class="bmi-section-title">Свежие выпуски</h2>
+            <a class="bmi-section-link" asp-page="/Videos">Все видео →</a>
+        </div>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+            @foreach (var video in Model.GridVideos)
+            {
+                <partial name="Shared/_VideoCard" model="video" />
+            }
+        </div>
+    </section>
 }

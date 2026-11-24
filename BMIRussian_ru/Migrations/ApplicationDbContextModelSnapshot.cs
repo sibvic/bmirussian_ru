@@ -109,6 +109,9 @@ namespace BMIRussian_ru.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<TimeSpan?>("Duration")
+                        .HasColumnType("interval");
+
                     b.Property<bool>("HasTranscript")
                         .HasColumnType("boolean");
 

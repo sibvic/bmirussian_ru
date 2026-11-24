@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -31,27 +31,27 @@
     <!-- /Yandex.Metrika counter -->
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    <header class="bmi-header">
+        <nav class="navbar navbar-expand-md navbar-dark bmi-navbar">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">BMIRussian.ru</a>
+                <a class="bmi-logo" asp-area="" asp-page="/Index">BMIRussian<span class="bmi-logo-slashes">//</span></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="navbar-collapse collapse d-md-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Videos">Видео</a>
+                            <a class="nav-link" asp-area="" asp-page="/Videos">Видео</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" href="https://wheels.bmirussian.ru">Диски</a>
+                            <a class="nav-link" href="https://wheels.bmirussian.ru">Диски</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Shop">Магазин</a>
+                            <a class="nav-link" asp-area="" asp-page="/Shop">Магазин</a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" id="sideProjectsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Непрофильные проекты</a>
+                            <a class="nav-link dropdown-toggle" href="#" id="sideProjectsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Непрофильные проекты</a>
                             <ul class="dropdown-menu" aria-labelledby="sideProjectsDropdown">
                                 <li><a class="dropdown-item" href="https://blogger.bmirussian.ru">Блоггинг</a></li>
                                 <li><a class="dropdown-item" href="https://tart.bmirussian.ru">SMOG Соревнования</a></li>
@@ -61,24 +61,48 @@
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/About">О нас</a>
+                            <a class="nav-link" asp-area="" asp-page="/About">О нас</a>
                         </li>
                     </ul>
                     @await Component.InvokeAsync("AdminMenu")
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav align-items-md-center">
+                        <li class="nav-item">
+                            <a class="bmi-icon-link" asp-area="" asp-page="/Videos" title="Поиск видео" aria-label="Поиск видео">
+                                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                                    <circle cx="10.5" cy="10.5" r="7" />
+                                    <line x1="15.8" y1="15.8" x2="21" y2="21" />
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="bmi-platforms-btn" href="#" id="platformsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Наши площадки</a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="platformsDropdown">
+                                <li><a class="dropdown-item" href="https://www.youtube.com/@@bmirussiantv1">YouTube — BMIRussian TV</a></li>
+                                <li><a class="dropdown-item" href="https://www.youtube.com/@@mcmbmirussian">YouTube — MCM на русском</a></li>
+                                <li><a class="dropdown-item" href="https://www.youtube.com/@@roadsuntraveledbmirussian8433">YouTube — Roads Untraveled</a></li>
+                                <li><a class="dropdown-item" href="https://www.youtube.com/@@bmirussiantv2">YouTube — iddqd Racing</a></li>
+                                <li><a class="dropdown-item" href="https://www.youtube.com/@@bmirussianlive1911">YouTube — BMIRussian Live</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" href="https://t.me/bmirussian">Telegram канал</a></li>
+                                <li><a class="dropdown-item" href="https://t.me/bmirussian_chat">Telegram чат</a></li>
+                                <li><a class="dropdown-item" href="https://vk.ru/bmirussian">VK</a></li>
+                                <li><a class="dropdown-item" href="https://www.instagram.com/bmirussian/">Instagram</a></li>
+                                <li><a class="dropdown-item" href="https://www.drive2.ru/communities/543">Drive2</a></li>
+                            </ul>
+                        </li>
                         @if (Context.Request.Cookies.ContainsKey("jwtToken"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Profile">Профиль</a>
+                                <a class="nav-link" asp-area="" asp-page="/Profile">Профиль</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Logout">Выход</a>
+                                <a class="nav-link" asp-area="" asp-page="/Logout">Выход</a>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Login">Вход</a>
+                                <a class="nav-link" asp-area="" asp-page="/Login">Вход</a>
                             </li>
                         }
                     </ul>
@@ -86,8 +110,9 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    <main role="main" class="@(ViewData["FullBleed"] is true ? "" : "container pb-3")">
+        @RenderBody()
+        <div class="container bmi-ad">
             <!-- Yandex.RTB R-A-2820013-1 -->
             <div id="yandex_rtb_R-A-2820013-1"></div>
             <script>window.yaContextCb.push(()=>{
@@ -97,15 +122,37 @@
                 })
             })
             </script>
-            @RenderBody()
-        </main>
-    </div>
+        </div>
+    </main>
 
-    <footer class="border-top footer text-muted">
+    <footer class="bmi-footer">
         <div class="container">
-            &copy; 2016-2026 - BMIRussian.ru
-            ·
-            <a href="https://github.com/sibvic/bmirussian_ru" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <div class="bmi-footer-row">
+                <span class="bmi-footer-tagline">Смотри · Читай · Участвуй</span>
+                <div class="bmi-footer-socials">
+                    <a class="bmi-social-link" href="https://www.youtube.com/@@bmirussiantv1" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                        <svg viewBox="0 0 24 24"><path d="M23.1 7.2s-.2-1.6-.9-2.3c-.9-.9-1.9-.9-2.4-1C16.6 3.6 12 3.6 12 3.6s-4.6 0-7.7.3c-.5.1-1.5.1-2.4 1-.7.7-.9 2.3-.9 2.3S.8 9.1.8 11v1.8c0 1.9.2 3.8.2 3.8s.2 1.6.9 2.3c.9.9 2 .9 2.5 1 1.8.2 7.6.3 7.6.3s4.6 0 7.7-.4c.5-.1 1.5-.1 2.4-1 .7-.7.9-2.3.9-2.3s.2-1.9.2-3.8V11c0-1.9-.2-3.8-.2-3.8zM9.7 15.1V8.4l6.3 3.4-6.3 3.3z"/></svg>
+                        <span>YouTube</span>
+                    </a>
+                    <a class="bmi-social-link" href="https://t.me/bmirussian" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+                        <svg viewBox="0 0 24 24"><path d="M9.04 15.9l-.38 5.36c.54 0 .78-.23 1.06-.5l2.55-2.44 5.28 3.87c.97.53 1.65.25 1.91-.9l3.46-16.2c.31-1.42-.51-1.98-1.45-1.63L1.9 10.8c-1.4.54-1.38 1.32-.24 1.67l5.2 1.62 12.06-7.6c.57-.35 1.09-.16.66.19L9.04 15.9z"/></svg>
+                        <span>Telegram</span>
+                    </a>
+                    <a class="bmi-social-link" href="https://vk.ru/bmirussian" target="_blank" rel="noopener noreferrer" aria-label="VK">
+                        <svg viewBox="0 0 24 24"><path d="M13 18.4c-5.4 0-8.5-3.7-8.6-9.9h2.7c.1 4.5 2.1 6.4 3.7 6.8V8.5h2.5v3.9c1.6-.2 3.2-2 3.8-3.9h2.5c-.4 2.4-2 4.1-3.1 4.9 1.1.5 3 1.9 3.7 5h-2.8c-.6-1.9-2-3.4-4.1-3.6v3.6H13z"/></svg>
+                        <span>VK</span>
+                    </a>
+                    <a class="bmi-social-link" href="https://www.instagram.com/bmirussian/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24"><path d="M12 8.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4zm0-1.8a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm6.4-.3a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0zM12 4.2c-2.5 0-2.8 0-3.8.1-1 .04-1.5.2-1.9.34-.5.2-.86.43-1.24.81a3.2 3.2 0 0 0-.81 1.24c-.14.4-.3.9-.34 1.9-.06 1-.06 1.3-.06 3.8s0 2.8.06 3.8c.04 1 .2 1.5.34 1.9.2.5.43.86.81 1.24.38.38.74.61 1.24.81.4.14.9.3 1.9.34 1 .06 1.3.06 3.8.06s2.8 0 3.8-.06c1-.04 1.5-.2 1.9-.34a3.4 3.4 0 0 0 1.24-.81c.38-.38.61-.74.81-1.24.14-.4.3-.9.34-1.9.06-1 .06-1.3.06-3.8s0-2.8-.06-3.8c-.04-1-.2-1.5-.34-1.9a3.2 3.2 0 0 0-.81-1.24 3.4 3.4 0 0 0-1.24-.81c-.4-.14-.9-.3-1.9-.34-1-.06-1.3-.06-3.8-.06z"/></svg>
+                        <span>Instagram</span>
+                    </a>
+                </div>
+            </div>
+            <div class="bmi-footer-copy">
+                &copy; 2016-2026 - BMIRussian.ru
+                ·
+                <a href="https://github.com/sibvic/bmirussian_ru" target="_blank" rel="noopener noreferrer">GitHub</a>
+            </div>
         </div>
     </footer>
 

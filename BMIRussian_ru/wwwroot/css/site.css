@@ -426,6 +426,38 @@ a.bmi-card:hover .bmi-card-title {
   color: var(--bmi-red);
 }
 
+/* ---------- Pagination ---------- */
+
+.pagination .page-link {
+  background: var(--bmi-surface);
+  border-color: var(--bmi-border);
+  color: var(--bmi-text);
+}
+
+.pagination .page-link:hover {
+  background: var(--bmi-surface-2);
+  border-color: var(--bmi-red);
+  color: #fff;
+}
+
+.pagination .page-link:focus {
+  background: var(--bmi-surface-2);
+  color: #fff;
+  box-shadow: 0 0 0 0.1rem var(--bmi-bg), 0 0 0 0.25rem var(--bmi-red);
+}
+
+.pagination .page-item.active .page-link {
+  background: var(--bmi-red);
+  border-color: var(--bmi-red);
+  color: #fff;
+}
+
+.pagination .page-item.disabled .page-link {
+  background: var(--bmi-bg);
+  border-color: var(--bmi-border);
+  color: var(--bmi-muted);
+}
+
 /* ---------- Ad ---------- */
 
 .bmi-ad {

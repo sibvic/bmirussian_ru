@@ -82,6 +82,11 @@ a:hover {
   clip-path: polygon(.6em 0, 100% 0, calc(100% - .6em) 100%, 0 100%);
 }
 
+a.bmi-chip:hover, a.bmi-chip:focus {
+  background: var(--bmi-red-dark);
+  color: #fff;
+}
+
 .bmi-btn {
   display: inline-flex;
   align-items: center;
@@ -249,10 +254,11 @@ a:hover {
 .bmi-hero h1 {
   font-family: var(--bmi-font-display);
   font-style: italic;
-  font-size: clamp(2.1rem, 5vw, 3.8rem);
-  line-height: 1.04;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1.08;
   text-transform: uppercase;
   color: #fff;
+  max-width: 48rem;
   margin: 1rem 0 1.1rem;
 }
 

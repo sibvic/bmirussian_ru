@@ -13,9 +13,20 @@
             <img class="bmi-hero-bg" src="@Model.FeaturedVideo.ImageUrl" alt="" />
         }
         <div class="container bmi-hero-content">
-            <span class="bmi-chip">Главное</span>
-            <h1>Автокультура<br />и автоспорт —<br />на русском</h1>
-            <p class="bmi-hero-sub">Переводим, снимаем и рассказываем о машинах, которые нас вдохновляют.</p>
+            @if (Model.FeaturedVideo.Tags.Any())
+            {
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var tag in Model.FeaturedVideo.Tags.OrderBy(t => t.TagText))
+                    {
+                        <a class="bmi-chip text-decoration-none" asp-page="/Tag" asp-route-tag="@tag.TagText">@tag.TagText</a>
+                    }
+                </div>
+            }
+            <h1>@Model.FeaturedVideo.Title</h1>
+            @if (!string.IsNullOrEmpty(Model.FeaturedSummary))
+            {
+                <p class="bmi-hero-sub">@Model.FeaturedSummary</p>
+            }
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <a class="bmi-btn" asp-page="/Video" asp-route-seoId="@(Model.FeaturedVideo.SEOId ?? Model.FeaturedVideo.Id.ToString())">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 3.8v16.4L20 12z" /></svg>
